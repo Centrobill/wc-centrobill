@@ -3,7 +3,7 @@ defined('ABSPATH') or exit();
 
 class WC_Centrobill_Api
 {
-    const CENTROBILL_API_URL = 'http://epayment.centrobill.com/epayment/lib/paypage_api/pay.php';
+    const CENTROBILL_API_URL = 'https://epayment.centrobill.com/epayment/lib/paypage_api/pay.php';
 
     /**
      * @var string
