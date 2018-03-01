@@ -40,7 +40,7 @@ class WC_Centrobill_Webhook_Handler
             'result' => self::RESULT_NOK
         ];
         try {
-            $xml = simplexml_load_string($_REQUEST['ipn']);
+            $xml = simplexml_load_string(stripslashes($_REQUEST['ipn']));
 
             $ppgetdata   = (string) $xml->transaction->ppGetData;
             $status      = (string) $xml->transaction->status;
