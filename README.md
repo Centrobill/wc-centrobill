@@ -1,5 +1,7 @@
 # Centrobill plugin for WooCommerce  
-## Description __CentroBill Payment Gateway plugin for WooCommerce__   
+
+## Description
+CentroBill Payment Gateway plugin for WooCommerce   
 
 ##  Plugin Installation Instructions  
 
