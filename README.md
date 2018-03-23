@@ -53,7 +53,7 @@ CentroBill Payment Gateway plugin for WooCommerce
 * Add the name of the Product your customers will see on the payment page to the __Product name__ field. You can add names in different languages by clicking the green __+__. 
 * Please, mind the price users will see on the page will be in the Currency you have chosen for this Product. If you need a price in different currency, please create a new product.
 * When everything is ready click the blue __Add new__ button.
-* In case existing product should be changed, please click _Edit_ button near the product you need to change.
+* In case existing product should be changed, please click __Edit__ button near the product you need to change.
 
 ## Verification 
 * Contact your Centrobill account manager to verify your setup
