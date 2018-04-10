@@ -9,15 +9,21 @@ class WC_Centrobill_Api
      * @var string
      */
     protected $authKey;
+    /**
+     * @var integer
+     */
+    protected $siteId;
 
     /**
      * WC_Centrobill_Api constructor.
      *
      * @param string $auth_key
+     * @param integer $site_id
      */
-    public function __construct($auth_key)
+    public function __construct($auth_key, $site_id)
     {
         $this->authKey = $auth_key;
+        $this->siteId = $site_id;
     }
 
     /**
@@ -93,6 +99,7 @@ class WC_Centrobill_Api
         return [
             'method'              => 'get-paypage-url',
             'authentication_key'  => $this->authKey,
+            'site_id'             => $this->site_id,
             'fmt'                 => 'json',
             'product_external_id' => implode(',', $product_ids),
             'price'               => $order->get_total(),

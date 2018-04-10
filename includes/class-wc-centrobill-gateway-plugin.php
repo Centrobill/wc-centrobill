@@ -3,7 +3,14 @@ defined('ABSPATH') or exit();
 
 class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
 {
+    /**
+     * @var string
+     */
     protected $authKey;
+    /**
+     * @var integer
+     */
+    protected $siteId;
 
     public function __construct()
     {
@@ -18,7 +25,7 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
         $this->init_settings();
 
         // Define user set variables
-        $this->authKey     = $this->get_option('auth_key');
+        list($this->authKey, $this->siteId) = explode(':', $this->get_option('token'));
         $this->title       = $this->get_option('title');
         $this->description = $this->get_option('description');
 
@@ -105,8 +112,8 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
                 'description' => __('This controls the description which the user sees during checkout.', 'woocommerce'),
                 'default'     => __('Pay with CentroBill', 'woocommerce')
             ],
-            'auth_key'    => [
-                'title'       => __('Auth key', 'woocommerce'),
+            'token'    => [
+                'title'       => __('Token', 'woocommerce'),
                 'type'        => 'text',
                 'description' => __('Key used for making requests and generating sign.', 'woocommerce'),
                 'default'     => __('', 'woocommerce')
@@ -123,7 +130,7 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
 
         $order = new WC_Order($order_id);
         try {
-            $centrobill_api = new WC_Centrobill_Api($this->authKey);
+            $centrobill_api = new WC_Centrobill_Api($this->authKey, $this->siteId);
             $payment_url    = $centrobill_api->getPaymentUrl($order);
             $widget         = new WC_Centrobill_Widget;
             $widget->showPaymentForm(
