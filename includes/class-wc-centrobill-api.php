@@ -99,7 +99,7 @@ class WC_Centrobill_Api
         return [
             'method'              => 'get-paypage-url',
             'authentication_key'  => $this->authKey,
-            'site_id'             => $this->site_id,
+            'site_id'             => $this->siteId,
             'fmt'                 => 'json',
             'product_external_id' => implode(',', $product_ids),
             'price'               => $order->get_total(),
