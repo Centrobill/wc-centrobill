@@ -13,8 +13,8 @@ CentroBill Payment Gateway plugin for WooCommerce
 * Install any pending updates if necessary. 
 * In case __WooCommerce__ plugin is not installed, please install it and update it.
 
-### Personal Centrobill API Auth Key and Merchant Portal login credentials
-* Obtain your personal account's __API Auth Key__ from your Centrobill account manager.
+### Personal Centrobill API Token and Merchant Portal login credentials
+* Obtain your personal account's __Token__ from your Centrobill account manager.
 * Obtain __Centrobill Merchant Portal__ login credentials from your Centrobill account manager.
 
 ### Install the plugin 
