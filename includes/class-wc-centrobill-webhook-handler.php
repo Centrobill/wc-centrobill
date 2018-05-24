@@ -55,8 +55,14 @@ class WC_Centrobill_Webhook_Handler
                 if($_REQUEST['sign'] == $this->generateSign($cb_order_id, $mode, $status)) {
                     $result['order_details'] = $wc_order->get_data();
                     if($this->isPaymentSuccessful($status, $mode)) {
-                        // Mark order complete
-                        $wc_order->update_status('processing');
+                        $order_status = 'completed';
+						foreach ($wc_order->get_items() as $product) {
+							if(!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {
+								$order_status = 'processing';
+								break;
+							}
+						}
+                        $wc_order->update_status($order_status);
                     }
                     elseif($this->isRefundSuccessful($status, $mode)) {
                         // Mark order refunded
