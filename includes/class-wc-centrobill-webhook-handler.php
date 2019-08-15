@@ -19,6 +19,8 @@ class WC_Centrobill_Webhook_Handler
     const RESULT_NOK = 'NOK';
     const RESULT_OK = 'OK';
 
+    const META_DATA_CB_USER = '_cb_ustas';
+
     /**
      * @var string
      */
@@ -75,6 +77,7 @@ class WC_Centrobill_Webhook_Handler
                         $result['message'] = self::MESSAGE_UNPROCESSABLE_STATUS;
                     }
                     $result['result'] = self::RESULT_OK;
+                    $wc_order->update_meta_data(self::META_DATA_CB_USER, (string) $xml->transaction->customer->ustas);
                 }
                 else {
                     $result['error'] = self::ERROR_INVALID_SIGNATURE;

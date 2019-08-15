@@ -30,6 +30,7 @@ class WC_Centrobill_Api
      * @param WC_Order $order
      *
      * @return bool|string
+     * @throws Exception
      */
     public function getPaymentUrl(WC_Order $order)
     {
@@ -42,11 +43,52 @@ class WC_Centrobill_Api
     }
 
     /**
-     * @param $params
+     * @param float $amount
+     * @param WC_Order $order
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function processRecurringPayment($amount, WC_Order $order)
+    {
+        $result = $this->makeRequest($this->prepareRecurringPaymentRequestParams($amount, $order));
+        if ($result['result'] == 'OK') {
+            return $result['transaction_id'];
+        }
+
+        throw new Exception('Payment gateway error: '.@$result['response_text']);
+    }
+
+    /**
+     * @param WC_Order $order
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function createUstasIfNotExists(WC_Order $order)
+    {
+        $result = $this->makeRequest([
+            'method' => 'get_ustas_or_create',
+            'authentication_key' => $this->authKey,
+            'fmt' => 'json',
+            'email' => $order->get_billing_email(),
+            'external_user_id' => $this->getExternalUserId($order),
+        ]);
+
+        if ($result['result'] == 'OK') {
+            return $result['ustas'];
+        }
+
+        throw new Exception('Payment gateway error: '.@$result['response_text']);
+    }
+
+    /**
+     * @param array $params
      *
      * @return bool|string
+     * @throws Exception
      */
-    protected function makeRequest($params)
+    protected function makeRequest(array $params)
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -56,10 +98,11 @@ class WC_Centrobill_Api
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_URL, self::CENTROBILL_API_URL);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
         $output = curl_exec($ch);
 
-        if($this->isValidJson($output)) {
+        if ($this->isValidJson($output)) {
             return json_decode($output, true);
         }
 
@@ -106,11 +149,87 @@ class WC_Centrobill_Api
             'currency'            => $order->get_currency(),
             'description'         => implode(', ', $product_descriptions),
             'email'               => $order->get_billing_email(),
-            'external_user_id'    => !empty($order->get_customer_id())
-                ? $order->get_customer_id() : $order->get_billing_email(),
+            'external_user_id'    => $this->getExternalUserId($order),
             'custom_params'       => [
                 'wp_order_id' => $order->get_id()
             ]
         ];
+    }
+
+    /**
+     * @param float $amount
+     * @param WC_Order $order
+     *
+     * @return array
+     * @throws Exception
+     */
+    protected function prepareRecurringPaymentRequestParams($amount, WC_Order $order)
+    {
+        $productNames = [];
+        foreach ($order->get_items() as $item) {
+            /** @var WC_Product $product */
+            $product = $item->get_product();
+            $productNames[] = $product->get_name();
+        }
+
+        $ustas = $this->getUstas($order);
+
+        return [
+            'method' => 'quick_sale',
+            'authentication_key' => $this->authKey,
+            'fmt' => 'json',
+            'scode' => $this->calculateScodeByUstas($ustas),
+            'ustas' => $ustas,
+            'sku' => [
+                [
+                    'title' => implode(', ', $productNames),
+                    'site_id' => $this->siteId,
+                    'currency' => $order->get_currency(),
+                    'price' => [
+                        [
+                            'offset' => '0d',
+                            'price' => $amount,
+                            'repeat' => false,
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @param WC_Order $order
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function getUstas(WC_Order $order)
+    {
+        if ($ustas = $order->get_meta(WC_Centrobill_Webhook_Handler::META_DATA_CB_USER)) {
+            return $ustas;
+        }
+
+        return $this->createUstasIfNotExists($order);
+    }
+
+    /**
+     * @param WC_Order $order
+     *
+     * @return int|string
+     */
+    private function getExternalUserId(WC_Order $order)
+    {
+        return !empty($order->get_customer_id())
+            ? $order->get_customer_id() : $order->get_billing_email();
+    }
+
+    /**
+     * @param int $ustas
+     *
+     * @return string
+     */
+    private function calculateScodeByUstas($ustas)
+    {
+        return md5($ustas.$this->authKey);
     }
 }

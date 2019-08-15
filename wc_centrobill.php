@@ -23,13 +23,22 @@ function woocommerce_centrobill_init()
     require_once('includes/class-wc-centrobill-widget.php');
     require_once('includes/class-wc-centrobill-webhook-handler.php');
     require_once('includes/class-wc-centrobill-api.php');
+    require_once('includes/class-wc-centrobill-subscription.php');
 
     /**
      * Add the gateway to WooCommerce
-     **/
+     *
+     * @param array $methods
+     *
+     * @return array
+     */
     function add_centrobill_gateway($methods)
     {
-        $methods[] = 'WC_Centrobill_Gateway_Plugin';
+        if (WC_Centrobill_Subscription::isWCSubscriptionsPluginActive()) {
+            $methods[] = WC_Centrobill_Subscription::class;
+        } else {
+            $methods[] = WC_Centrobill_Gateway_Plugin::class;
+        }
 
         return $methods;
     }
