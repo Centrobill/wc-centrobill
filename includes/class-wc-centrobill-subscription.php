@@ -12,7 +12,6 @@ defined('ABSPATH') or exit();
 class WC_Centrobill_Subscription extends WC_Centrobill_Gateway_Plugin
 {
     const SETTING_KEY_ALLOW_SUBSCRIPTIONS = 'allow_subscriptions';
-
     const SETTING_VALUE_YES = 'yes';
 
     const FEATURE_SUBSCRIPTIONS = 'subscriptions';
@@ -131,16 +130,10 @@ class WC_Centrobill_Subscription extends WC_Centrobill_Gateway_Plugin
     {
         $order = wc_get_order($orderId);
         if ($this->isOrderContainsSubscription($order) && $order->get_total() == 0) {
-            $order->payment_complete();
             $order->add_order_note('This subscription has a free trial');
-
-            return [
-                'result' => 'success',
-                'redirect' => $this->get_return_url($order),
-            ];
-        } else {
-            return parent::process_payment($orderId);
         }
+
+        return parent::process_payment($orderId);
     }
 
     /**

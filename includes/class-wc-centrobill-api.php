@@ -71,7 +71,7 @@ class WC_Centrobill_Api
             'method' => 'get_ustas_or_create',
             'authentication_key' => $this->authKey,
             'fmt' => 'json',
-            'email' => $order->get_billing_email(),
+            'username' => $order->get_billing_email(),
             'external_user_id' => $this->getExternalUserId($order),
         ]);
 
@@ -125,10 +125,20 @@ class WC_Centrobill_Api
      * @param WC_Order $order
      *
      * @return array
+     * @throws Exception
      */
     protected function preparePaymentUrlRequestParams(WC_Order $order)
     {
-        $product_ids          = [];
+        $hasSubscriptionTrialPeriod = false;
+        $price = $order->get_total();
+
+        $subscription = $this->getSubscription($order);
+        if ($subscription->get_trial_period() && ($subscription->get_time('trial_end') > time())) {
+            $hasSubscriptionTrialPeriod = true;
+            $price = $subscription->get_total();
+        }
+
+        $product_ids = [];
         $product_descriptions = [];
         foreach($order->get_items() as $item) {
             /**
@@ -145,13 +155,14 @@ class WC_Centrobill_Api
             'site_id'             => $this->siteId,
             'fmt'                 => 'json',
             'product_external_id' => implode(',', $product_ids),
-            'price'               => $order->get_total(),
+            'price'               => $price,
             'currency'            => $order->get_currency(),
             'description'         => implode(', ', $product_descriptions),
             'email'               => $order->get_billing_email(),
             'external_user_id'    => $this->getExternalUserId($order),
             'custom_params'       => [
-                'wp_order_id' => $order->get_id()
+                'wp_order_id' => $order->get_id(),
+                'trial' => (int) $hasSubscriptionTrialPeriod,
             ]
         ];
     }
@@ -165,6 +176,9 @@ class WC_Centrobill_Api
      */
     protected function prepareRecurringPaymentRequestParams($amount, WC_Order $order)
     {
+        $subscription = $this->getSubscription($order);
+        $isAuthOrder = ($order->get_meta('_subscription_renewal') && ($subscription->get_time('trial_end') + 3600 > time())) ?: false;
+
         $productNames = [];
         foreach ($order->get_items() as $item) {
             /** @var WC_Product $product */
@@ -172,13 +186,11 @@ class WC_Centrobill_Api
             $productNames[] = $product->get_name();
         }
 
-        $ustas = $this->getUstas($order);
-
-        return [
-            'method' => 'quick_sale',
+        $request = [
+            'method' => $isAuthOrder ? 'quick_settle' : 'quick_sale',
             'authentication_key' => $this->authKey,
             'fmt' => 'json',
-            'scode' => $this->calculateScodeByUstas($ustas),
+            'scode' => $this->calculateScodeByUstas($ustas = $this->getUstas($subscription->get_parent_id())),
             'ustas' => $ustas,
             'sku' => [
                 [
@@ -195,16 +207,24 @@ class WC_Centrobill_Api
                 ]
             ]
         ];
+
+        if ($isAuthOrder) {
+            $initialOrder = wc_get_order($subscription->get_parent_id());
+            $request['auth_transaction_id'] = $initialOrder->get_meta(WC_Centrobill_Webhook_Handler::META_DATA_CB_TRANSACTION_ID);
+        }
+
+        return $request;
     }
 
     /**
-     * @param WC_Order $order
+     * @param int $orderId
      *
      * @return mixed
      * @throws Exception
      */
-    public function getUstas(WC_Order $order)
+    public function getUstas($orderId)
     {
+        $order = wc_get_order($orderId);
         if ($ustas = $order->get_meta(WC_Centrobill_Webhook_Handler::META_DATA_CB_USER)) {
             return $ustas;
         }
@@ -231,5 +251,21 @@ class WC_Centrobill_Api
     private function calculateScodeByUstas($ustas)
     {
         return md5($ustas.$this->authKey);
+    }
+
+    /**
+     * @param WC_Order $order
+     *
+     * @return WC_Subscription
+     * @throws Exception
+     */
+    private function getSubscription(WC_Order $order)
+    {
+        $orderTypes = ['parent', 'renewal', 'switch'];
+        if (!$subscription = end(wcs_get_subscriptions_for_order($order, ['order_type' => $orderTypes]))) {
+            throw new Exception('Subscription failed');
+        }
+
+        return $subscription;
     }
 }

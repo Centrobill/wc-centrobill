@@ -20,6 +20,7 @@ class WC_Centrobill_Webhook_Handler
     const RESULT_OK = 'OK';
 
     const META_DATA_CB_USER = '_cb_ustas';
+    const META_DATA_CB_TRANSACTION_ID = '_cb_transaction_id';
 
     /**
      * @var string
@@ -58,12 +59,12 @@ class WC_Centrobill_Webhook_Handler
                     $result['order_details'] = $wc_order->get_data();
                     if($this->isPaymentSuccessful($status, $mode)) {
                         $order_status = 'completed';
-						foreach ($wc_order->get_items() as $product) {
-							if(!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {
-								$order_status = 'processing';
-								break;
-							}
-						}
+                        foreach ($wc_order->get_items() as $product) {
+                            if(!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {
+                                $order_status = 'processing';
+                                break;
+                            }
+                        }
                         $wc_order->update_status($order_status);
                     }
                     elseif($this->isRefundSuccessful($status, $mode)) {
@@ -77,7 +78,10 @@ class WC_Centrobill_Webhook_Handler
                         $result['message'] = self::MESSAGE_UNPROCESSABLE_STATUS;
                     }
                     $result['result'] = self::RESULT_OK;
+
                     $wc_order->update_meta_data(self::META_DATA_CB_USER, (string) $xml->transaction->customer->ustas);
+                    $wc_order->update_meta_data(self::META_DATA_CB_TRANSACTION_ID, (string) $xml->transaction->id);
+                    $wc_order->save_meta_data();
                 }
                 else {
                     $result['error'] = self::ERROR_INVALID_SIGNATURE;
