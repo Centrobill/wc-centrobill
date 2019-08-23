@@ -80,7 +80,7 @@ class WC_Centrobill_Webhook_Handler
                     $result['result'] = self::RESULT_OK;
 
                     $wc_order->update_meta_data(self::META_DATA_CB_USER, (string) $xml->transaction->customer->ustas);
-                    $wc_order->update_meta_data(self::META_DATA_CB_TRANSACTION_ID, (string) $xml->transaction->id);
+                    $wc_order->update_meta_data(self::META_DATA_CB_TRANSACTION_ID, (string) $xml->transaction->attributes()->id);
                     $wc_order->save_meta_data();
                 }
                 else {

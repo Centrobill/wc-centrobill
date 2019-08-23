@@ -1,11 +1,13 @@
 <?php
-/*
-  Plugin Name: CentroBill Payment Gateway
-  Plugin URI:
-  Description: Allows you to use CentroBill payment gateway with the WooCommerce plugin
-  Version: 1.0.3
-  Author: CentroBill
-  Author URI: https://centrobill.com/
+/**
+ * Plugin Name: CentroBill Payment Gateway
+ * Plugin URI:
+ * Description: Allows you to use CentroBill payment gateway with the WooCommerce plugin
+ * Version: 1.0.4
+ * Author: CentroBill
+ * Author URI: https://centrobill.com/
+ *
+ * WC tested up to: 3.7.0
  */
 
 defined('ABSPATH') or exit();
