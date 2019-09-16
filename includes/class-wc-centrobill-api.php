@@ -132,10 +132,11 @@ class WC_Centrobill_Api
         $hasSubscriptionTrialPeriod = false;
         $price = $order->get_total();
 
-        $subscription = $this->getSubscription($order);
-        if ($subscription->get_trial_period() && ($subscription->get_time('trial_end') > time())) {
-            $hasSubscriptionTrialPeriod = true;
-            $price = $subscription->get_total();
+        if ($subscription = $this->getSubscription($order)) {
+            if ($subscription->get_trial_period() && ($subscription->get_time('trial_end') > time())) {
+                $hasSubscriptionTrialPeriod = true;
+                $price = $subscription->get_total();
+            }
         }
 
         $product_ids = [];
@@ -176,8 +177,11 @@ class WC_Centrobill_Api
      */
     protected function prepareRecurringPaymentRequestParams($amount, WC_Order $order)
     {
-        $subscription = $this->getSubscription($order);
-        $isAuthOrder = ($order->get_meta('_subscription_renewal') && ($subscription->get_time('trial_end') + 3600 > time())) ?: false;
+        if (!$subscription = $this->getSubscription($order)) {
+            throw new Exception('Subscription failed');
+        }
+
+        $isAuthOrder = ($order->get_meta('_subscription_renewal') && ($subscription->get_time('trial_end') - 3600 > time())) ?: false;
 
         $productNames = [];
         foreach ($order->get_items() as $item) {
@@ -256,16 +260,15 @@ class WC_Centrobill_Api
     /**
      * @param WC_Order $order
      *
-     * @return WC_Subscription
-     * @throws Exception
+     * @return WC_Subscription|null
      */
     private function getSubscription(WC_Order $order)
     {
         $orderTypes = ['parent', 'renewal', 'switch'];
-        if (!$subscription = end(wcs_get_subscriptions_for_order($order, ['order_type' => $orderTypes]))) {
-            throw new Exception('Subscription failed');
+        if ($subscription = end(wcs_get_subscriptions_for_order($order, ['order_type' => $orderTypes]))) {
+            return $subscription;
         }
 
-        return $subscription;
+        return null;
     }
 }
