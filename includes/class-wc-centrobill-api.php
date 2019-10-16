@@ -264,6 +264,10 @@ class WC_Centrobill_Api
      */
     private function getSubscription(WC_Order $order)
     {
+        if (!WC_Centrobill_Subscription::isWCSubscriptionsPluginActive()) {
+            return null;
+        }
+
         $orderTypes = ['parent', 'renewal', 'switch'];
         if ($subscription = end(wcs_get_subscriptions_for_order($order, ['order_type' => $orderTypes]))) {
             return $subscription;
