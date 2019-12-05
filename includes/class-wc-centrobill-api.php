@@ -9,6 +9,7 @@ class WC_Centrobill_Api
      * @var string
      */
     protected $authKey;
+
     /**
      * @var integer
      */
@@ -131,12 +132,14 @@ class WC_Centrobill_Api
     {
         $hasSubscriptionTrialPeriod = false;
         $price = $order->get_total();
+        $subscriptionId = '';
 
         if ($subscription = $this->getSubscription($order)) {
             if ($subscription->get_trial_period() && ($subscription->get_time('trial_end') > time())) {
                 $hasSubscriptionTrialPeriod = true;
                 $price = $subscription->get_total();
             }
+            $subscriptionId = $subscription->get_id();
         }
 
         $product_ids = [];
@@ -156,6 +159,7 @@ class WC_Centrobill_Api
             'site_id'             => $this->siteId,
             'fmt'                 => 'json',
             'product_external_id' => implode(',', $product_ids),
+            'invoice_external_id' => $subscriptionId,
             'price'               => $price,
             'currency'            => $order->get_currency(),
             'description'         => implode(', ', $product_descriptions),
@@ -268,8 +272,8 @@ class WC_Centrobill_Api
             return null;
         }
 
-        $orderTypes = ['parent', 'renewal', 'switch'];
-        if ($subscription = end(wcs_get_subscriptions_for_order($order, ['order_type' => $orderTypes]))) {
+        $subscriptions = wcs_get_subscriptions_for_order($order, ['order_type' => ['parent', 'renewal', 'switch']]);
+        if ($subscription = end($subscriptions)) {
             return $subscription;
         }
 
