@@ -1,5 +1,5 @@
 # Centrobill plugin for WooCommerce  
-
+Version 1.0.7
 ## Description
 CentroBill Payment Gateway plugin for WooCommerce   
 
