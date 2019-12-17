@@ -86,28 +86,23 @@ class WC_Centrobill_Api
     /**
      * @param array $params
      *
-     * @return bool|string
+     * @return array
      * @throws Exception
      */
     protected function makeRequest(array $params)
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_URL, self::CENTROBILL_API_URL);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
-        $output = curl_exec($ch);
+        $response = wp_remote_post(
+            self::CENTROBILL_API_URL, [
+                'headers' => ['Content-Type: application/json'],
+                'body' => $params
+            ]
+        );
 
-        if ($this->isValidJson($output)) {
-            return json_decode($output, true);
+        if (is_wp_error($response) || !$this->isValidJson($response['body'])) {
+            throw new Exception('Payment gateway error');
         }
 
-        throw new Exception('Payment gateway error');
+        return json_decode($response['body'], true);
     }
 
     /**
