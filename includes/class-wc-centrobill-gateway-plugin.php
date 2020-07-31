@@ -131,7 +131,7 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
                 'description' => 'Automatically redirects customers to Centrobill Payment Page to enter their payment information',
                 'desc_tip'    => true,
                 'label'       => 'Enable',
-                'default'     => __('yes', 'woocommerce')
+                'default'     => __('no', 'woocommerce')
 
             ],
         ];
