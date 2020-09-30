@@ -3,7 +3,7 @@
  * Plugin Name: CentroBill Payment Gateway
  * Plugin URI:
  * Description: Allows you to use CentroBill payment gateway with the WooCommerce plugin
- * Version: 1.0.7
+ * Version: 1.0.10
  * Author: CentroBill
  * Author URI: https://centrobill.com/
  *

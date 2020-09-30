@@ -7,10 +7,16 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
      * @var string
      */
     protected $authKey;
+
     /**
      * @var integer
      */
     protected $siteId;
+
+    /**
+     * @var bool
+     */
+    protected $redirectToPaymentPage;
 
     public function __construct()
     {
@@ -26,8 +32,9 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
 
         // Define user set variables
         list($this->authKey, $this->siteId) = explode(':', $this->get_option('token'));
-        $this->title       = $this->get_option('title');
+        $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
+        $this->redirectToPaymentPage = $this->get_option('redirect_to_payment_page', 'no') === 'yes';
 
         // Actions
         add_action('woocommerce_receipt_'.$this->id, [$this, 'receipt_page']);
@@ -93,13 +100,13 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
     function init_form_fields()
     {
         $this->form_fields = [
-            'enabled'     => [
+            'enabled' => [
                 'title'   => __('Enable/Disable', 'woocommerce'),
                 'type'    => 'checkbox',
                 'label'   => __('Enable', 'woocommerce'),
                 'default' => 'yes'
             ],
-            'title'       => [
+            'title' => [
                 'title'       => __('Title', 'woocommerce'),
                 'type'        => 'text',
                 'description' => __('This controls the title which the user sees during checkout.', 'woocommerce'),
@@ -112,11 +119,20 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
                 'description' => __('This controls the description which the user sees during checkout.', 'woocommerce'),
                 'default'     => __('Pay with CentroBill', 'woocommerce')
             ],
-            'token'    => [
+            'token' => [
                 'title'       => __('Token', 'woocommerce'),
                 'type'        => 'text',
                 'description' => __('Key used for making requests and generating sign.', 'woocommerce'),
                 'default'     => __('', 'woocommerce')
+            ],
+            'redirect_to_payment_page' => [
+                'title'       => __('Auto redirect to the <br>Payment Page', 'woocommerce'),
+                'type'        => 'checkbox',
+                'description' => 'Automatically redirects customers to Centrobill Payment Page to enter their payment information',
+                'desc_tip'    => true,
+                'label'       => 'Enable',
+                'default'     => __('no', 'woocommerce')
+
             ],
         ];
     }
@@ -126,22 +142,23 @@ class WC_Centrobill_Gateway_Plugin extends WC_Payment_Gateway
      */
     public function receipt_page($order_id)
     {
-        global $woocommerce;
-
-        $order = new WC_Order($order_id);
+        $order = wc_get_order($order_id);
         try {
             $centrobill_api = new WC_Centrobill_Api($this->authKey, $this->siteId);
-            $payment_url    = $centrobill_api->getPaymentUrl($order);
-            $widget         = new WC_Centrobill_Widget;
-            $widget->showPaymentForm(
-                $payment_url,
-                $order->get_cancel_order_url()
-            );
+            $payment_url = $centrobill_api->getPaymentUrl($order);
 
-            // Empty cart and clear session
-            $woocommerce->cart->empty_cart();
-        }
-        catch(Exception $e) {
+            if (!$this->redirectToPaymentPage) {
+                (new WC_Centrobill_Widget)->showPaymentForm(
+                    $payment_url,
+                    $order->get_cancel_order_url()
+                );
+            } else {
+                wp_redirect($payment_url);
+                exit;
+            }
+
+            wc_empty_cart();
+        } catch (Exception $e) {
             wc_add_notice($e->getMessage(), 'error');
         }
     }

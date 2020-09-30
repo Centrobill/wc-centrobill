@@ -1,31 +1,30 @@
 ==== CentroBill Payment Gateway Addon ====
-Contributors: Centrobill
+Plugin Name: Centrobill WooCommerce Addon
+Plugin URI: https://wordpress.org/plugins/wc_centrobill/
 Tags: woocommerce plugin centrobill
-Requires at least: 5.3
-Tested up to: 5.3
-Stable tag: 1.0.8
-Requires PHP: 5.2.4
-Version: 1.0.8
-License: GPLv3 or later
+Requires at least: WP 4.0  & WooCommerce 2.2+
+Tested up to: 5.3.1 & WooCommerce 3.8.1
+Stable tag: 1.0.10
+Version: 1.0.10
 License: http://www.gnu.org/licenses/gpl-3.0.html
 
 == Description ==
 CentroBill Payment Gateway plugin for WooCommerce
 
 == Preparation ==
-* Verify that you are running the latest versiogit sn of WordPress and Woocommerce. Plugin requires at least WP 4.0 & WooCommerce 2.2+, and has been tested to work with versions up to: WP 5.3.1 & WooCommerce 3.8.1. 
-* Install any pending updates if necessary. 
-* In case WooCommerce plugin is not installed, please install it and update it. 
+* Verify that you are running the latest versiogit sn of WordPress and Woocommerce. Plugin requires at least WP 4.0 & WooCommerce 2.2+, and has been tested to work with versions up to: WP 5.3.1 & WooCommerce 3.8.1.
+* Install any pending updates if necessary.
+* In case WooCommerce plugin is not installed, please install it and update it.
 
 == Personal Centrobill API Token and Merchant Portal login credentials ==
-* Obtain your personal account's Token from your Centrobill account manager. 
-* Obtain Centrobill Merchant Portal login credentials from your Centrobill account manager. 
+* Obtain your personal account's Token from your Centrobill account manager.
+* Obtain Centrobill Merchant Portal login credentials from your Centrobill account manager.
 
 == Install the plugin ==
-* Download plugin repository as a single zip file 
+* Download plugin repository as a single zip file
 * Log into your WordPress as admin, click on Plugins section in the menu, click Add new.
 * Click Upload Plugin, click Choose File to select the zip file from your computer.
-* Install the plugin and activate it. 
+* Install the plugin and activate it.
 
 == Plugin configuration ==
 * Go to WooCommerce menu, click Settings.
