@@ -51,7 +51,7 @@ class WC_Centrobill_Webhook_Handler
             $cb_order_id = (string) $xml->transaction->orderId;
 
             $ppgetdata_params = unserialize(base64_decode($ppgetdata));
-            $order_id         = $ppgetdata_params['wp_order_id'];
+            $order_id = isset($ppgetdata_params['wp_order_id']) ? $ppgetdata_params['wp_order_id'] : null;
 
             if(!empty($order_id)) {
                 $wc_order = new WC_Order($order_id);
