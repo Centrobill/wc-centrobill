@@ -72,7 +72,8 @@ class WC_Centrobill_Webhook_Handler
                         $wc_order->update_status('refunded');
                     }
                     elseif($this->isPaymentFailed($status, $mode)) {
-                        $wc_order->update_status('failed', __('Payment failed', 'woocommerce'));
+                        $response_text = (string) $xml->transaction->responseText;
+                        $wc_order->update_status('failed', __(sprintf('Payment failed. %s', $response_text), 'woocommerce'));
                     }
                     else {
                         $result['message'] = self::MESSAGE_UNPROCESSABLE_STATUS;
