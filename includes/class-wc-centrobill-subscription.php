@@ -65,8 +65,8 @@ class WC_Centrobill_Subscription extends WC_Centrobill_Gateway_Plugin
     /**
      * Handles recurring transactions
      *
-     * @param $amount
-     * @param $renewalOrder
+     * @param float $amount
+     * @param WC_Order $renewalOrder
      *
      * @throws Exception
      */
@@ -82,7 +82,7 @@ class WC_Centrobill_Subscription extends WC_Centrobill_Gateway_Plugin
      * @param int $amount
      * @param WC_Order $order
      *
-     * @return mixed|WP_Error
+     * @return array|WP_Error
      */
     protected function processSubscriptionPayment($amount, $order)
     {
@@ -90,16 +90,13 @@ class WC_Centrobill_Subscription extends WC_Centrobill_Gateway_Plugin
             return (new WC_Centrobill_Api($this->authKey, $this->siteId))
                 ->processRecurringPayment($amount, $order);
         } catch (Exception $e) {
-            return new \WP_Error(
-                $e->getCode(),
-                $e->getMessage()
-            );
+            return new \WP_Error($e->getCode(), $e->getMessage());
         }
     }
 
     /**
      * @param WC_Order $renewalOrder
-     * @param stdClass|WP_Error $response
+     * @param array|WP_Error $response
      *
      * @throws Exception
      * @return void
@@ -117,7 +114,11 @@ class WC_Centrobill_Subscription extends WC_Centrobill_Gateway_Plugin
             return;
         }
 
-        $renewalOrder->payment_complete($response);
+        if ($this->isPaymentSuccessful($response)) {
+            $renewalOrder->payment_complete($response['transaction_id']);
+        } else {
+            $renewalOrder->update_status(WC_Centrobill_Webhook_Handler::STATUS_FAILED, $this->getResponseText($response));
+        }
     }
 
     /**
@@ -187,5 +188,40 @@ class WC_Centrobill_Subscription extends WC_Centrobill_Gateway_Plugin
     protected function isSubscriptionEnabled()
     {
         return $this->get_option(self::SETTING_KEY_ALLOW_SUBSCRIPTIONS) == self::SETTING_VALUE_YES;
+    }
+
+    /**
+     * @param array $response
+     *
+     * @return bool
+     */
+    private function isPaymentSuccessful(array $response)
+    {
+        return array_key_exists('transaction_id', $response) &&
+            array_key_exists('status', $response) &&
+            in_array(
+                $response['status'],
+                [
+                    WC_Centrobill_Webhook_Handler::STATUS_SUCCESSFUL,
+                    WC_Centrobill_Webhook_Handler::STATUS_SHIPPED
+                ]
+            );
+    }
+
+    /**
+     * @param array $response
+     *
+     * @return string
+     */
+    private function getResponseText(array $response)
+    {
+        $message = '';
+        if (!empty($response['response_text'])) {
+            $message = $response['response_text'];
+        } elseif (!empty($response['error_message'])) {
+            $message = $response['error_message'];
+        }
+
+        return $message;
     }
 }

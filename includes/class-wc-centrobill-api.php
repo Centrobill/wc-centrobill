@@ -52,12 +52,12 @@ class WC_Centrobill_Api
      */
     public function processRecurringPayment($amount, WC_Order $order)
     {
-        $result = $this->makeRequest($this->prepareRecurringPaymentRequestParams($amount, $order));
-        if ($result['result'] == 'OK') {
-            return $result['transaction_id'];
+        $response = $this->makeRequest($this->prepareRecurringPaymentRequestParams($amount, $order));
+        if ($response['result'] === 'OK') {
+            return $response;
         }
 
-        throw new Exception('Payment gateway error: '.@$result['response_text']);
+        throw new Exception('Payment gateway error: '.@$response['response_text']);
     }
 
     /**
