@@ -208,7 +208,8 @@ class WC_Centrobill_Api
                         ]
                     ]
                 ]
-            ]
+            ],
+            'is_vat_included' => 0,
         ];
 
         if ($isAuthOrder) {
