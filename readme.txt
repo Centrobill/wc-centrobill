@@ -2,17 +2,17 @@
 Plugin Name: Centrobill WooCommerce Addon
 Plugin URI: https://wordpress.org/plugins/wc_centrobill/
 Tags: woocommerce plugin centrobill
-Requires at least: WP 4.0  & WooCommerce 2.2+
-Tested up to: 5.3.1 & WooCommerce 3.8.1
-Stable tag: 1.0.12
-Version: 1.0.12
+Requires at least: WP 4.0 & WooCommerce 2.2+
+Tested up to: 5.3.1 & WooCommerce 3.7.0
+Stable tag: 2.0.0
+Version: 2.0.0
 License: http://www.gnu.org/licenses/gpl-3.0.html
 
 == Description ==
 CentroBill Payment Gateway plugin for WooCommerce
 
 == Preparation ==
-* Verify that you are running the latest versiogit sn of WordPress and Woocommerce. Plugin requires at least WP 4.0 & WooCommerce 2.2+, and has been tested to work with versions up to: WP 5.3.1 & WooCommerce 3.8.1.
+* Verify that you are running the latest version of WordPress and Woocommerce. Plugin requires at least WP 4.0 & WooCommerce 2.2+, and has been tested to work with versions up to: WP 5.3.1 & WooCommerce 3.8.1.
 * Install any pending updates if necessary.
 * In case WooCommerce plugin is not installed, please install it and update it.
 
