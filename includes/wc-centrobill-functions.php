@@ -31,14 +31,6 @@ function wc_centrobill_set_post_param($param, $value) {
 }
 
 /**
- * @param string $name
- * @param array $args
- */
-function wc_centrobill_get_template($name, array $args = []) {
-    wc_get_template($name, $args, '', WC_CENTROBILL_PLUGIN_PATH . '/templates/');
-}
-
-/**
  * @param string $string
  * @return bool
  */
@@ -65,15 +57,6 @@ function wc_centrobill_check_expiration_date($date) {
 }
 
 /**
- * @param array $data
- * @return bool
- */
-function wc_centrobill_is_3ds_redirect($data) {
-    return !empty($data['payment']['url']) &&
-        (!empty($data['payment']['action']) && $data['payment']['action'] === 'redirect');
-}
-
-/**
  * @param string $data
  * @return bool
  */
@@ -87,7 +70,7 @@ function wc_centrobill_is_api_ipn($data) {
  * @param array $data
  * @return string
  */
-function wc_centrobill_get_ipn_url(array $data) {
+function wc_centrobill_get_ipn_url(array $data = []) {
     return !empty($data['ipn_url']) ?
         $data['ipn_url'] : untrailingslashit(get_home_url()) . '?wc-api=wc_gateway_centrobill';
 }
@@ -98,4 +81,28 @@ function wc_centrobill_get_ipn_url(array $data) {
  */
 function wc_centrobill_retrieve_response_text(array $response) {
     return !empty($response['response_text']) ? $response['response_text'] : '';
+}
+
+/**
+ * @param string $name
+ * @param array $args
+ */
+function wc_centrobill_get_template($name, array $args = []) {
+    wc_get_template($name, $args, '', WC_CENTROBILL_PLUGIN_PATH . '/templates/');
+}
+
+/**
+ * @param string $path
+ * @return string
+ */
+function wc_centrobill_assets_url($path) {
+    return apply_filters('woocommerce_centrobill_icon', sprintf('%s/assets/%s', WC_CENTROBILL_PLUGIN_URL, $path));
+}
+
+/**
+ * @param string $img
+ * @return string
+ */
+function wc_centrobill_image_url($img) {
+    return wc_centrobill_assets_url('images/' . $img);
 }

@@ -36,7 +36,7 @@ if (!class_exists('WC_Centrobill_Logger')) {
          */
         public function __construct(array $settings)
         {
-            self::$isEnabled = !empty($settings['debug']) && $settings['debug'] === 'yes';
+            self::$isEnabled = !empty($settings[SETTING_KEY_DEBUG]) && $settings[SETTING_KEY_DEBUG] === 'yes';
         }
 
         /**

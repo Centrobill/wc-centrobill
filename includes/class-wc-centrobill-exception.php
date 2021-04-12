@@ -10,10 +10,11 @@ if (!class_exists('WC_Centrobill_Exception')) {
     {
         /**
          * @param string $message
+         * @param int $code
          */
-        public function __construct($message = 'Payment gateway error')
+        public function __construct($message = 'Payment gateway error', $code = 0)
         {
-            parent::__construct($message);
+            parent::__construct($message, $code);
         }
     }
 }

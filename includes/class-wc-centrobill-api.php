@@ -8,22 +8,6 @@ if (!class_exists('WC_Centrobill_Api')) {
      */
     class WC_Centrobill_Api
     {
-        const CENTROBILL_API_URL = 'https://api.centrobill.com';
-        const CENTROBILL_EPAYMENT_URL = 'https://epayment.centrobill.com/epayment/lib/paypage_api/pay.php';
-
-        const HTTP_STATUS_OK = 200;
-        const HTTP_STATUS_CREATED = 201;
-
-        /**
-         * @var string
-         */
-        private $authKey;
-
-        /**
-         * @var int
-         */
-        private $siteId;
-
         /**
          * @var array
          */
@@ -35,8 +19,6 @@ if (!class_exists('WC_Centrobill_Api')) {
         public function __construct(array $settings)
         {
             $this->settings = $settings;
-
-            list($this->authKey, $this->siteId) = explode(':', $settings['token']);
         }
 
         /**
@@ -47,7 +29,7 @@ if (!class_exists('WC_Centrobill_Api')) {
          */
         public function getToken(array $data)
         {
-            $response = $this->makeRequest($this->prepareTokenRequestParams($data), 'tokenize', true);
+            $response = $this->request($this->prepareTokenRequestParams($data), API_ENDPOINT_TOKENIZE, true);
             wc_centrobill()->logger->info('[API] Get token response', $response);
 
             if (empty($response['token'])) {
@@ -58,15 +40,18 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
-         * @param string $token
-         * @param WC_Order $order
+         * @param array $paymentSource
+         * @param int $orderId
          *
          * @return array
          * @throws WC_Centrobill_Exception
          */
-        public function pay($token, WC_Order $order)
+        public function pay(array $paymentSource, $orderId)
         {
-            $response = $this->makeRequest($this->preparePaymentRequestParams($token, $order), 'payment');
+            $response = $this->request(
+                $this->preparePaymentRequestParams($paymentSource, $orderId),
+                API_ENDPOINT_PAYMENT
+            );
             wc_centrobill()->logger->info('[API] Payment response', $response);
 
             return $response;
@@ -81,26 +66,26 @@ if (!class_exists('WC_Centrobill_Api')) {
          */
         public function processRecurringPayment($amount, WC_Order $order)
         {
-            $response = $this->makeRequest($this->prepareRecurringPaymentRequestParams($amount, $order));
+            $response = $this->request($this->prepareRecurringPaymentRequestParams($amount, $order));
             wc_centrobill()->logger->info('[API] Recurring payment response', $response);
 
             return $response;
         }
 
         /**
-         * @param WC_Order $order
+         * @param string $email
          *
          * @return string
          * @throws WC_Centrobill_Exception
          */
-        public function createConsumerIfNotExists(WC_Order $order)
+        public function createConsumerIfNotExists($email)
         {
-            $response = $this->makeRequest([
+            $response = $this->request([
                 'method' => 'get_ustas_or_create',
-                'authentication_key' => $this->authKey,
+                'authentication_key' => $this->getAuthKey(),
                 'fmt' => 'json',
-                'username' => $order->get_billing_email(),
-                'external_user_id' => $this->getExternalUserId($order),
+                'username' => $email,
+                'external_user_id' => $this->getExternalUserId($email),
             ]);
             wc_centrobill()->logger->info('[API] Create consumer response', $response);
 
@@ -108,32 +93,29 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
-         * @param WC_Order $order
+         * @param string $email
          *
          * @return array
          * @throws WC_Centrobill_Exception
          */
-        public function getPaymentMethods(WC_Order $order)
+        public function getPaymentMethods($email)
         {
-            $response = $this->makeRequest([
+            $response = $this->request([
                 'method' => 'get',
-                'authentication_key' => $this->authKey,
+                'authentication_key' => $this->getAuthKey(),
                 'fmt' => 'json',
-                'ustas' => $this->getConsumer($order),
+                'ustas' => $this->getConsumer(null, $email),
                 'sku_name' => $this->getTechSku(),
                 'customer_remote_addr' => wc_centrobill_get_ip_address(),
-                'customer_country' => $order->get_billing_country(),
                 'load_cc_mid_info' => true,
             ]);
 
+            wc_centrobill()->logger->info('[API] Payment methods response', $response);
+
             $result = [];
             if (!empty($response['short_payment_methods'])) {
-                foreach ($response['short_payment_methods'] as $paymentMethod => $data) {
-                    $result[] = $paymentMethod;
-                }
+                $result = array_keys($response['short_payment_methods']);
             }
-
-            wc_centrobill()->logger->info('[API] Payment methods response', $response);
 
             return $result;
         }
@@ -146,12 +128,12 @@ if (!class_exists('WC_Centrobill_Api')) {
          * @return array
          * @throws WC_Centrobill_Exception
          */
-        private function makeRequest(array $params, $endpoint = null, $xhr = false)
+        private function request(array $params, $endpoint = null, $xhr = false)
         {
             if (!is_null($endpoint)) {
-                $url = sprintf('%s/%s', self::CENTROBILL_API_URL, untrailingslashit($endpoint));
+                $url = sprintf('%s/%s', API_URL, untrailingslashit($endpoint));
                 $headers = [
-                    'Authorization' => $this->authKey,
+                    'Authorization' => $this->getAuthKey(),
                     'Content-Type' => 'application/json',
                 ];
                 $data = [
@@ -159,7 +141,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'body' => json_encode($params),
                 ];
             } else {
-                $url = self::CENTROBILL_EPAYMENT_URL;
+                $url = EPAYMENT_URL;
                 $data = [
                     'headers' => ['Content-Type: application/json'],
                     'body' => $params
@@ -189,7 +171,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 );
             }
 
-            if (!empty($endpoint) && !in_array($code, [self::HTTP_STATUS_OK, self::HTTP_STATUS_CREATED], true)) {
+            if (!empty($endpoint) && !in_array($code, [HTTP_STATUS_OK, HTTP_STATUS_CREATED], true)) {
                 wc_centrobill()->logger->error('[API] Payment gateway error', [
                     'response_code' => $code,
                     'message' => $response['message'],
@@ -234,13 +216,16 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
-         * @param string $token
-         * @param WC_Order $order
+         * @param array $paymentSource
+         * @param int $orderId
          *
          * @return array
+         * @throws WC_Centrobill_Exception
          */
-        private function preparePaymentRequestParams($token, WC_Order $order)
+        private function preparePaymentRequestParams(array $paymentSource, $orderId)
         {
+            $order = wc_get_order($orderId);
+
             $hasSubscriptionTrialPeriod = false;
             $amount = $order->get_total();
 
@@ -252,13 +237,10 @@ if (!class_exists('WC_Centrobill_Api')) {
             }
 
             return [
-                'paymentSource' => [
-                    'type' => 'token',
-                    'value' => $token,
-                ],
+                'paymentSource' => $paymentSource,
                 'sku' => [
                     'title' => join(', ', $this->getProductNames($order)),
-                    'siteId' => $this->siteId,
+                    'siteId' => $this->getSiteId(),
                     'price' => [
                         [
                             'offset' => '0d',
@@ -271,7 +253,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 'consumer' => [
                     'firstName' => $order->get_billing_first_name(),
                     'lastName' => $order->get_billing_last_name(),
-                    'externalId' => $this->getExternalUserId($order),
+                    'externalId' => $this->getExternalUserId($order->get_billing_email()),
                     'email' => $order->get_billing_email(),
                     'ip' => wc_centrobill_get_ip_address(),
                 ],
@@ -306,14 +288,14 @@ if (!class_exists('WC_Centrobill_Api')) {
 
             $request = [
                 'method' => $isAuthOrder ? 'quick_settle' : 'quick_sale',
-                'authentication_key' => $this->authKey,
+                'authentication_key' => $this->getAuthKey(),
                 'fmt' => 'json',
                 'ustas' => $consumer = $this->getConsumer($subscription->get_parent_id()),
                 'scode' => $this->calculateScode($consumer),
                 'sku' => [
                     [
                         'title' => implode(', ', $this->getProductNames($order)),
-                        'site_id' => $this->siteId,
+                        'site_id' => $this->getSiteId(),
                         'currency' => $order->get_currency(),
                         'price' => [
                             [
@@ -329,40 +311,55 @@ if (!class_exists('WC_Centrobill_Api')) {
 
             if ($isAuthOrder) {
                 $initialOrder = wc_get_order($subscription->get_parent_id());
-                $request['auth_transaction_id'] = $initialOrder->get_meta(WC_Centrobill_Constants::META_DATA_CB_TRANSACTION_ID);
+                $request['auth_transaction_id'] = $initialOrder->get_meta(META_DATA_CB_TRANSACTION_ID);
             }
 
             return $request;
         }
 
         /**
-         * @param WC_Order|int $order
+         * @param int $orderId
+         * @param string|null $email
          *
          * @return string
          * @throws WC_Centrobill_Exception
          */
-        private function getConsumer($order)
+        private function getConsumer($orderId, $email = null)
         {
-            if (!$order instanceof WC_Order) {
-                $order = wc_get_order($order);
+            $currentUser = wp_get_current_user();
+
+            if ($currentUser->exists()) { // is user logged in
+                if ($user = get_user_meta(get_current_user_id(), META_DATA_CB_USER, true)) {
+                    return $user;
+                }
             }
 
-            if ($ustas = $order->get_meta(WC_Centrobill_Constants::META_DATA_CB_USER)) {
-                return $ustas;
+            if ($email === null) {
+                $order = wc_get_order($orderId);
+                if ($order && ($user = $order->get_meta(META_DATA_CB_USER))) {
+                    return $user;
+                }
+
+                if ($order instanceof WC_Order) {
+                    $email = $order->get_billing_email();
+                } elseif ($currentUser->exists()) {
+                    $email = $currentUser->user_email;
+                } else {
+                    throw new WC_Centrobill_Exception('Customer email is missing.');
+                }
             }
 
-            return $this->createConsumerIfNotExists($order);
+            return $this->createConsumerIfNotExists($email);
         }
 
         /**
-         * @param WC_Order $order
+         * @param string $email
          *
          * @return string
          */
-        private function getExternalUserId(WC_Order $order)
+        private function getExternalUserId($email)
         {
-            return !empty($order->get_customer_id()) ?
-                'wp__' . $order->get_customer_id() : $order->get_billing_email();
+            return !empty(get_current_user_id()) ? sprintf('wp__%s', get_current_user_id()) : $email;
         }
 
         /**
@@ -385,18 +382,20 @@ if (!class_exists('WC_Centrobill_Api')) {
          * @param int $consumer
          *
          * @return string
+         * @throws WC_Centrobill_Exception
          */
         private function calculateScode($consumer)
         {
-            return md5($consumer . $this->authKey);
+            return md5($consumer . $this->getAuthKey());
         }
 
         /**
          * @return string
+         * @throws WC_Centrobill_Exception
          */
         private function getTechSku()
         {
-            return 'TECH_' . $this->siteId;
+            return 'TECH_' . $this->getSiteId();
         }
 
         /**
@@ -416,6 +415,32 @@ if (!class_exists('WC_Centrobill_Api')) {
             }
 
             return null;
+        }
+
+        /**
+         * @return string
+         * @throws WC_Centrobill_Exception
+         */
+        private function getAuthKey()
+        {
+            if (empty($this->settings[SETTING_KEY_AUTH_KEY])) {
+                throw new WC_Centrobill_Exception('Authentication key is missing.');
+            }
+
+            return $this->settings[SETTING_KEY_AUTH_KEY];
+        }
+
+        /**
+         * @return int
+         * @throws WC_Centrobill_Exception
+         */
+        private function getSiteId()
+        {
+            if (empty($this->settings[SETTING_KEY_SITE_ID])) {
+                throw new WC_Centrobill_Exception('Site ID is missing.');
+            }
+
+            return $this->settings[SETTING_KEY_AUTH_KEY];
         }
     }
 }

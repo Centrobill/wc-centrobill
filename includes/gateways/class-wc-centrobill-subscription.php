@@ -5,15 +5,9 @@ defined('ABSPATH') || exit;
 if (!class_exists('WC_Centrobill_Subscription')) {
     /**
      * Class WC_Centrobill_Subscription
-     *
-     * @class  WC_Centrobill_Subscription
-     * @author CentroBill
      */
-    class WC_Centrobill_Subscription extends WC_Centrobill_Gateway
+    class WC_Centrobill_Subscription extends WC_Centrobill_Gateway_CC
     {
-        const SETTING_KEY_ALLOW_SUBSCRIPTIONS = 'allow_subscriptions';
-        const SETTING_VALUE_YES = 'yes';
-
         const FEATURE_SUBSCRIPTIONS = 'subscriptions';
         const FEATURE_SUBSCRIPTION_CANCELLATION = 'subscription_cancellation';
         const FEATURE_SUBSCRIPTION_SUSPENSION = 'subscription_suspension';
@@ -24,9 +18,6 @@ if (!class_exists('WC_Centrobill_Subscription')) {
 
         const WC_ACTION_SCHEDULED_SUBSCRIPTION_PAYMENT = 'woocommerce_scheduled_subscription_payment';
 
-        /**
-         * {@inheritdoc}
-         */
         public function __construct()
         {
             parent::__construct();
@@ -108,7 +99,7 @@ if (!class_exists('WC_Centrobill_Subscription')) {
 
             if (is_wp_error($response)) {
                 $renewalOrder->add_order_note('Payment transaction failed');
-                $renewalOrder->update_status(WC_Centrobill_Constants::WC_STATUS_FAILED, $response->get_error_message());
+                $renewalOrder->update_status(WC_STATUS_FAILED, $response->get_error_message());
 
                 return;
             }
@@ -116,24 +107,23 @@ if (!class_exists('WC_Centrobill_Subscription')) {
             if ($this->isPaymentSuccessful($response)) {
                 $renewalOrder->payment_complete($response['transaction_id']);
             } else {
-                $renewalOrder->update_status(WC_Centrobill_Constants::WC_STATUS_FAILED, $this->getResponseText($response));
+                $renewalOrder->update_status(WC_STATUS_FAILED, $this->getResponseText($response));
             }
         }
 
         /**
          * Process a trial subscription order with 0 total
          *
-         * @param int $orderId
-         * @return array
+         * {@inheritDoc}
          */
-        public function process_payment($orderId)
+        public function gateway_process_payment($orderId)
         {
             $order = wc_get_order($orderId);
             if ($this->isOrderContainsSubscription($order) && $order->get_total() == 0) {
                 $order->add_order_note('This subscription has a free trial');
             }
 
-            return parent::process_payment($orderId);
+            parent::gateway_process_payment($orderId);
         }
 
         /**
@@ -143,8 +133,8 @@ if (!class_exists('WC_Centrobill_Subscription')) {
          */
         private function isOrderContainsSubscription(WC_Order $order)
         {
-            return function_exists('wcs_order_contains_subscription')
-                && (wcs_order_contains_subscription($order) || wcs_order_contains_renewal($order));
+            return function_exists('wcs_order_contains_subscription') &&
+                (wcs_order_contains_subscription($order) || wcs_order_contains_renewal($order));
         }
 
         /**
@@ -164,7 +154,9 @@ if (!class_exists('WC_Centrobill_Subscription')) {
          */
         private function isSubscriptionEnabled()
         {
-            return $this->get_option(self::SETTING_KEY_ALLOW_SUBSCRIPTIONS) === self::SETTING_VALUE_YES;
+            $settingsValue = $this->get_option(SETTING_KEY_ALLOW_SUBSCRIPTIONS);
+
+            return $settingsValue === SETTING_VALUE_YES;
         }
 
         /**
@@ -179,9 +171,10 @@ if (!class_exists('WC_Centrobill_Subscription')) {
                 in_array(
                     $response['status'],
                     [
-                        WC_Centrobill_Constants::STATUS_SUCCESSFUL,
-                        WC_Centrobill_Constants::STATUS_SHIPPED
-                    ]
+                        STATUS_SUCCESSFUL,
+                        STATUS_SHIPPED
+                    ],
+                    true
                 );
         }
 
