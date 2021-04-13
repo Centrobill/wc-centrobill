@@ -33,7 +33,7 @@ if (!class_exists('WC_Centrobill_Api')) {
             wc_centrobill()->logger->info('[API] Get token response', $response);
 
             if (empty($response['token'])) {
-                throw new WC_Centrobill_Exception('Token is missing');
+                throw new WC_Centrobill_Exception('Token is missing.');
             }
 
             return $response;
@@ -81,9 +81,7 @@ if (!class_exists('WC_Centrobill_Api')) {
         public function createConsumerIfNotExists($email)
         {
             $response = $this->request([
-                'method' => 'get_ustas_or_create',
-                'authentication_key' => $this->getAuthKey(),
-                'fmt' => 'json',
+                'method' => METHOD_GET_CREATE_USER,
                 'username' => $email,
                 'external_user_id' => $this->getExternalUserId($email),
             ]);
@@ -101,9 +99,7 @@ if (!class_exists('WC_Centrobill_Api')) {
         public function getPaymentMethods($email)
         {
             $response = $this->request([
-                'method' => 'get',
-                'authentication_key' => $this->getAuthKey(),
-                'fmt' => 'json',
+                'method' => METHOD_GET_PM,
                 'ustas' => $this->getConsumer(null, $email),
                 'sku_name' => $this->getTechSku(),
                 'customer_remote_addr' => wc_centrobill_get_ip_address(),
@@ -144,7 +140,13 @@ if (!class_exists('WC_Centrobill_Api')) {
                 $url = EPAYMENT_URL;
                 $data = [
                     'headers' => ['Content-Type: application/json'],
-                    'body' => $params
+                    'body' => array_merge(
+                        [
+                            'authentication_key' => $this->getAuthKey(),
+                            'fmt' => 'json',
+                        ],
+                        $params
+                    ),
                 ];
             }
 
@@ -287,9 +289,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 ($subscription->get_time('trial_end') - 3600 > time());
 
             $request = [
-                'method' => $isAuthOrder ? 'quick_settle' : 'quick_sale',
-                'authentication_key' => $this->getAuthKey(),
-                'fmt' => 'json',
+                'method' => $isAuthOrder ? METHOD_QUICK_SETTLE : METHOD_QUICK_SALE,
                 'ustas' => $consumer = $this->getConsumer($subscription->get_parent_id()),
                 'scode' => $this->calculateScode($consumer),
                 'sku' => [

@@ -9,11 +9,16 @@ const RESULT_CODE_SUCCESS = 0;
 const RESULT_OK = 'OK';
 const RESULT_NOK = 'NOK';
 
-const API_URL = 'http://api.centrobill.local';
-const EPAYMENT_URL = 'http://epayment.centrobill.local/epayment/lib/paypage_api/pay.php';
+const API_URL = 'https://api.centrobill.com';
+const EPAYMENT_URL = 'https://epayment.centrobill.com/epayment/lib/paypage_api/pay.php';
 
 const API_ENDPOINT_PAYMENT = 'payment';
 const API_ENDPOINT_TOKENIZE = 'tokenize';
+
+const METHOD_GET_CREATE_USER = 'get_ustas_or_create';
+const METHOD_GET_PM = 'get';
+const METHOD_QUICK_SALE = 'quick_sale';
+const METHOD_QUICK_SETTLE = 'quick_settle';
 
 const PAYMENT_TYPE_TOKEN = 'token';
 const PAYMENT_TYPE_SEPA = 'sepa';

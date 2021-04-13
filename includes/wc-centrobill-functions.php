@@ -92,6 +92,24 @@ function wc_centrobill_get_template($name, array $args = []) {
 }
 
 /**
+ * @param string $name
+ * @param array $args
+ * @param bool $includeOnce
+ */
+function wc_centrobill_load_partial_view($name, array $args = [], $includeOnce = true) {
+    foreach ($args as $variable => $value) {
+        $$variable = $value;
+    }
+
+    $path = WC_CENTROBILL_PLUGIN_PATH . "/includes/admin/views/%s.php";
+    if ($includeOnce) {
+        include_once sprintf($path, $name);
+    } else {
+        include sprintf($path, $name);
+    }
+}
+
+/**
  * @param string $path
  * @return string
  */
