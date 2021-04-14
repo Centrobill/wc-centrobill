@@ -1,153 +1,55 @@
 <?php
-defined('ABSPATH') or exit();
 
-class WC_Centrobill_Webhook_Handler
-{
-    const STATUS_DECLINED = 'declined';
-    const STATUS_FAILED = 'failed';
-    const STATUS_SHIPPED = 'shipped';
-    const STATUS_SUCCESSFUL = 'successful';
-    const STATUS_REFUNDED = 'refunded';
-    const MODE_AUTH = 'auth';
-    const MODE_REFUND = 'refund';
-    const MODE_SALE = 'sale';
-    const MODE_TEST = 'test';
-    const MODE_VOID = 'void';
-    const MESSAGE_UNPROCESSABLE_STATUS = 'Unprocessable status';
-    const ERROR_INVALID_SIGNATURE = 'Invalid signature';
-    const ERROR_EMPTY_ORDER_ID = 'Empty order_id';
-    const RESULT_NOK = 'NOK';
-    const RESULT_OK = 'OK';
+defined('ABSPATH') || exit;
 
-    const META_DATA_CB_USER = '_cb_ustas';
-    const META_DATA_CB_TRANSACTION_ID = '_cb_transaction_id';
-
+if (!class_exists('WC_Centrobill_Webhook_Handler')) {
     /**
-     * @var string
+     * Class WC_Centrobill_Webhook_Handler
      */
-    protected $authKey;
-
-    /**
-     * WC_Centrobill_Webhook_Handler constructor.
-     *
-     * @param string $auth_key
-     */
-    public function __construct($auth_key)
+    class WC_Centrobill_Webhook_Handler
     {
-        $this->authKey = $auth_key;
-    }
+        public function process()
+        {
+            if (!wc_centrobill_is_api_ipn($callback = file_get_contents('php://input'))) {
+                return;
+            }
 
-    public function process()
-    {
-        $result = [
-            'result' => self::RESULT_NOK
-        ];
-        try {
-            $xml = simplexml_load_string(stripslashes($_REQUEST['ipn']));
+            wc_centrobill()->logger->info('[IPN] Callback received', $callback);
+            $result = ['result' => RESULT_NOK];
 
-            $ppgetdata   = (string) $xml->transaction->ppGetData;
-            $status      = (string) $xml->transaction->status;
-            $mode        = (string) $xml->transaction->mode;
-            $cb_order_id = (string) $xml->transaction->orderId;
-
-            $ppgetdata_params = unserialize(base64_decode($ppgetdata));
-            $order_id = isset($ppgetdata_params['wp_order_id']) ? $ppgetdata_params['wp_order_id'] : null;
-
-            if(!empty($order_id)) {
-                $wc_order = new WC_Order($order_id);
-                if($_REQUEST['sign'] == $this->generateSign($cb_order_id, $mode, $status)) {
-                    $result['order_details'] = $wc_order->get_data();
-                    if($this->isPaymentSuccessful($status, $mode)) {
-                        $order_status = 'completed';
-                        foreach ($wc_order->get_items() as $product) {
-                            if(!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {
-                                $order_status = 'processing';
+            try {
+                $data = json_decode($callback, true);
+                if (!empty($data['metadata']['wp_order_id'])) {
+                    $order = wc_get_order($data['metadata']['wp_order_id']);
+                    if ((int)$data['payment']['code'] === RESULT_CODE_SUCCESS) {
+                        $status = WC_STATUS_COMPLETED;
+                        foreach ($order->get_items() as $product) {
+                            if (!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {
+                                $status = WC_STATUS_PROCESSING;
                                 break;
                             }
                         }
-                        $wc_order->update_status($order_status);
+                        $order->update_status($status);
+                        wc_empty_cart();
+                    } else {
+                        $order->update_status(WC_STATUS_FAILED, __($data['payment']['description'], 'woocommerce-gateway-centrobill'));
                     }
-                    elseif($this->isRefundSuccessful($status, $mode)) {
-                        // Mark order refunded
-                        $wc_order->update_status('refunded');
-                    }
-                    elseif($this->isPaymentFailed($status, $mode)) {
-                        $response_text = (string) $xml->transaction->responseText;
-                        $wc_order->update_status('failed', __(sprintf('Payment failed. %s', $response_text), 'woocommerce'));
-                    }
-                    else {
-                        $result['message'] = self::MESSAGE_UNPROCESSABLE_STATUS;
-                    }
-                    $result['result'] = self::RESULT_OK;
+                    $order->update_meta_data(META_DATA_CB_USER, $data['consumer']['id']);
+                    $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $data['payment']['transactionId']);
+                    $order->save_meta_data();
 
-                    $wc_order->update_meta_data(self::META_DATA_CB_USER, (string) $xml->transaction->customer->ustas);
-                    $wc_order->update_meta_data(self::META_DATA_CB_TRANSACTION_ID, (string) $xml->transaction->attributes()->id);
-                    $wc_order->save_meta_data();
+                    $result['result'] = RESULT_OK;
+                    $result['order_details'] = $order->get_data();
+                } else {
+                    $result['error'] = ERROR_EMPTY_ORDER_ID;
                 }
-                else {
-                    $result['error'] = self::ERROR_INVALID_SIGNATURE;
-                }
+            } catch (Exception $e) {
+                $result['error'] = $e->getMessage();
             }
-            else {
-                $result['error'] = self::ERROR_EMPTY_ORDER_ID;
-            }
+
+            wc_centrobill()->logger->info('[IPN] Response', $result);
+            echo json_encode($result);
+            exit;
         }
-        catch(Exception $e) {
-            $result['error'] = $e->getMessage();
-        }
-
-        echo json_encode($result);
-        exit;
-    }
-
-    /**
-     * @param $status
-     * @param $mode
-     *
-     * @return bool
-     */
-    protected function isPaymentSuccessful($status, $mode)
-    {
-        return in_array($status, [self::STATUS_SUCCESSFUL, self::STATUS_SHIPPED]) && in_array($mode, [self::MODE_AUTH, self::MODE_SALE, self::MODE_TEST]);
-    }
-
-    /**
-     * @param string $status
-     * @param string $mode
-     *
-     * @return bool
-     */
-    protected function isRefundSuccessful($status, $mode)
-    {
-        return in_array($status, [self::STATUS_REFUNDED, self::STATUS_SUCCESSFUL]) && in_array($mode, [self::MODE_REFUND, self::MODE_VOID]);
-    }
-
-    /**
-     * @param string $status
-     * @param string $mode
-     *
-     * @return bool
-     */
-    protected function isPaymentFailed($status, $mode)
-    {
-        return in_array($status, [self::STATUS_DECLINED, self::STATUS_FAILED]) && in_array($mode, [self::MODE_AUTH, self::MODE_SALE, self::MODE_TEST]);
-    }
-
-    /**
-     * @param string $cb_order_id
-     * @param string $mode
-     * @param string $status
-     *
-     * @return string
-     */
-    protected function generateSign($cb_order_id, $mode, $status)
-    {
-        return sha1(implode('_', [
-            $this->authKey,
-            $cb_order_id,
-            $mode,
-            $status,
-            $this->authKey
-        ]));
     }
 }
