@@ -63,7 +63,7 @@ function wc_centrobill_check_expiration_date($date) {
 function wc_centrobill_is_api_ipn($data) {
     $data = json_decode($data, true);
 
-    return !empty($data['payment']['code']);
+    return isset($data['payment']['code']);
 }
 
 /**
@@ -72,7 +72,7 @@ function wc_centrobill_is_api_ipn($data) {
  */
 function wc_centrobill_get_ipn_url(array $data = []) {
     return !empty($data['ipn_url']) ?
-        $data['ipn_url'] : untrailingslashit(get_home_url()) . '?wc-api=wc_gateway_centrobill';
+        $data['ipn_url'] : trailingslashit(get_home_url()) . '?wc-api=wc_gateway_centrobill';
 }
 
 /**

@@ -39,7 +39,7 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
                     $order->save_meta_data();
 
                     $result['result'] = RESULT_OK;
-                    $result['order_details'] = $order->get_data();
+                    $result['order_details'] = $order->get_base_data();
                 } else {
                     $result['error'] = ERROR_EMPTY_ORDER_ID;
                 }

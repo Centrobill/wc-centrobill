@@ -25,21 +25,5 @@ if (!class_exists('WC_Centrobill_Gateway_Onlinebanking')) {
         {
             $this->form_fields = WC_Centrobill_Admin_Widget::loadOnlinebankingFormFields();
         }
-
-        /**
-         * {@inheritDoc}
-         */
-        public function gateway_process_payment($orderId)
-        {
-            $paymentSource = [
-                'type' => str_replace('centrobill_', '', $this->id),
-            ];
-
-            if ($bic = wc_centrobill_retrieve_post_param('centrobill_bic')) {
-                $paymentSource['bic'] = $bic;
-            }
-
-            return wc_centrobill()->api->pay($paymentSource, $orderId);
-        }
     }
 }

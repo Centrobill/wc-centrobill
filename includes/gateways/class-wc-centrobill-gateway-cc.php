@@ -64,9 +64,9 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
             $data = array_merge(wc_centrobill_retrieve_post_param(), $data);
 
             $tokenRequiredFields = [
-                'centrobill-card-number' => __('Card Number', 'centrobill'),
-                'centrobill-expiration-date' => __('Expiry (MM/YY)', 'centrobill'),
-                'centrobill-cvv' => __('CVN/CVV', 'centrobill'),
+                'centrobill_card_number' => __('Card Number', 'centrobill'),
+                'centrobill_expiration_date' => __('Expiry (MM/YY)', 'centrobill'),
+                'centrobill_cvv' => __('CVN/CVV', 'centrobill'),
             ];
 
             foreach ($tokenRequiredFields as $field => $label) {

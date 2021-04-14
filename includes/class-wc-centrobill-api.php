@@ -150,7 +150,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 ];
             }
 
-            wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => $params]);
+            wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => $data['body']]);
             $response = wp_remote_post($url, $data);
 
             $code = wp_remote_retrieve_response_code($response);
@@ -440,7 +440,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 throw new WC_Centrobill_Exception('Site ID is missing.');
             }
 
-            return $this->settings[SETTING_KEY_AUTH_KEY];
+            return $this->settings[SETTING_KEY_SITE_ID];
         }
     }
 }

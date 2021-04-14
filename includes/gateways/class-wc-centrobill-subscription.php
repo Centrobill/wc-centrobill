@@ -80,6 +80,8 @@ if (!class_exists('WC_Centrobill_Subscription')) {
             try {
                 return wc_centrobill()->api->processRecurringPayment($amount, $order);
             } catch (Exception $e) {
+                wc_centrobill()->logger->error(__METHOD__, $e->getMessage());
+
                 return new WP_Error($e->getCode(), $e->getMessage());
             }
         }
@@ -123,7 +125,7 @@ if (!class_exists('WC_Centrobill_Subscription')) {
                 $order->add_order_note('This subscription has a free trial');
             }
 
-            parent::gateway_process_payment($orderId);
+            return parent::gateway_process_payment($orderId);
         }
 
         /**
