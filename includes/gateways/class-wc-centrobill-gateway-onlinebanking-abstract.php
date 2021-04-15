@@ -26,6 +26,13 @@ if (!class_exists('WC_Centrobill_Gateway_Onlinebanking_Abstract')) {
         /**
          * {@inheritDoc}
          */
+        public function before_process_payment()
+        {
+        }
+
+        /**
+         * {@inheritDoc}
+         */
         public function gateway_process_payment($orderId)
         {
             $paymentSource = [

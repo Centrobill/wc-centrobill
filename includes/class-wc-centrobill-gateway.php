@@ -46,6 +46,16 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
 
         /**
+         * @return void
+         */
+        public static function init()
+        {
+            if (!empty($_REQUEST['billing_email'])) {
+                add_filter('woocommerce_available_payment_gateways', ['WC_Centrobill', 'getAvailablePaymentGateways']);
+            }
+        }
+
+        /**
          * Process the payment and return the redirect URL if exists
          *
          * @param int $orderId
@@ -158,6 +168,8 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         public function process_payment($orderId)
         {
+            wc_centrobill_remove_session_keys([SESSION_KEY_EMAIL, SESSION_KEY_PM]);
+
             try {
                 $order = wc_get_order($orderId);
                 $result = $this->gateway_process_payment($orderId);
@@ -231,3 +243,5 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
     }
 }
+
+WC_Centrobill_Gateway_Abstract::init();

@@ -124,3 +124,12 @@ function wc_centrobill_assets_url($path) {
 function wc_centrobill_image_url($img) {
     return wc_centrobill_assets_url('images/' . $img);
 }
+
+/**
+ * @param array $keys
+ */
+function wc_centrobill_remove_session_keys(array $keys = []) {
+    foreach ($keys as $key) {
+        WC()->session->__unset($key);
+    }
+}

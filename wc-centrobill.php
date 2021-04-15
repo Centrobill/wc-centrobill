@@ -143,7 +143,7 @@ if (!class_exists('WC_Centrobill')) {
                     'is_email' => !empty($result['billing_email']),
                 ]);
                 $email = !empty($result['billing_email']) ? $result['billing_email'] : $user->user_email;
-                WC()->session->set('centrobill_checkout_email', sanitize_email($email));
+                WC()->session->set(SESSION_KEY_EMAIL, sanitize_email($email));
 
                 add_filter('woocommerce_available_payment_gateways', [__CLASS__, 'getAvailablePaymentGateways']);
             }
@@ -156,22 +156,25 @@ if (!class_exists('WC_Centrobill')) {
          */
         public static function getAvailablePaymentGateways(array $gateways)
         {
-            try {
-                $response = wc_centrobill()->api->getPaymentMethods(WC()->session->get('centrobill_checkout_email'));
-                foreach ($response as $paymentMethod) {
-                    $gateway = sprintf('WC_Centrobill_Gateway_%s', strtoupper($paymentMethod));
-                    if (class_exists($gateway)) {
-                        $gateway = new $gateway();
-                    }
-                    if ($gateway instanceof WC_Payment_Gateway && $gateway->enabled === 'yes') {
-                        $gateways[$gateway->id] = $gateway;
-                    }
+            if (!$response = WC()->session->get(SESSION_KEY_PM)) {
+                try {
+                    $response = wc_centrobill()->api->getPaymentMethods(WC()->session->get(SESSION_KEY_EMAIL));
+                    WC()->session->set(SESSION_KEY_PM, $response);
+                } catch (Exception $e) {
+                    $response = [];
+                    wc_centrobill()->logger->error($e->getMessage());
                 }
-            } catch (Exception $e) {
-                wc_centrobill()->logger->error($e->getMessage());
             }
 
-            wc_centrobill()->logger->info(__METHOD__, array_keys($gateways));
+            foreach ($response as $paymentMethod) {
+                $gateway = sprintf('WC_Centrobill_Gateway_%s', strtoupper($paymentMethod));
+                if (class_exists($gateway)) {
+                    $gateway = new $gateway();
+                }
+                if ($gateway instanceof WC_Payment_Gateway && $gateway->enabled === 'yes') {
+                    $gateways[$gateway->id] = $gateway;
+                }
+            }
 
             return $gateways;
         }
