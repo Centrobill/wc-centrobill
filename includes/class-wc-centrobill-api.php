@@ -66,7 +66,10 @@ if (!class_exists('WC_Centrobill_Api')) {
          */
         public function processRecurringPayment($amount, WC_Order $order)
         {
-            $response = $this->request($this->prepareRecurringPaymentRequestParams($amount, $order));
+            $response = $this->request(
+                $this->prepareRecurringPaymentRequestParams($amount, $order),
+                API_ENDPOINT_PAYMENT
+            );
             wc_centrobill()->logger->info('[API] Recurring payment response', $response);
 
             return $response;
@@ -149,20 +152,20 @@ if (!class_exists('WC_Centrobill_Api')) {
                     ),
                 ];
             }
+            $data['timeout'] = 60;
 
-            wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => $params]);
+            wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => $data['body']]);
             $response = wp_remote_post($url, $data);
 
             $code = wp_remote_retrieve_response_code($response);
             $body = wp_remote_retrieve_body($response);
 
             if (is_wp_error($response) || !wc_centrobill_is_valid_json($body)) {
-                wc_centrobill()->logger->error('[API] Payment gateway error', [
-                    'message' => !empty($body) ? $body : wp_remote_retrieve_response_message($response)
-                ]);
-                throw new WC_Centrobill_Exception(
-                    sprintf('Payment gateway error. %s', wp_remote_retrieve_response_message($response))
-                );
+                $message = ($response instanceof WP_Error)
+                    ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
+                wc_centrobill()->logger->error('[API] Payment gateway error', ['message' => $message]);
+
+                throw new WC_Centrobill_Exception(sprintf('Payment gateway error. %s', $message));
             }
 
             $response = json_decode($body, true);
@@ -219,18 +222,18 @@ if (!class_exists('WC_Centrobill_Api')) {
 
         /**
          * @param array $paymentSource
-         * @param int $orderId
+         * @param int|WC_Order $orderId
+         * @param float|null $renewalAmount
          *
          * @return array
          * @throws WC_Centrobill_Exception
          */
-        private function preparePaymentRequestParams(array $paymentSource, $orderId)
+        private function preparePaymentRequestParams(array $paymentSource, $orderId, $renewalAmount = null)
         {
             $order = wc_get_order($orderId);
-
             $hasSubscriptionTrialPeriod = false;
-            $amount = $order->get_total();
 
+            $amount = $order->get_total();
             if ($subscription = $this->getSubscription($order)) {
                 if ($subscription->get_trial_period() && ($subscription->get_time('trial_end') > time())) {
                     $hasSubscriptionTrialPeriod = true;
@@ -238,7 +241,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 }
             }
 
-            return [
+            $request = [
                 'paymentSource' => $paymentSource,
                 'sku' => [
                     'title' => join(', ', $this->getProductNames($order)),
@@ -246,7 +249,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'price' => [
                         [
                             'offset' => '0d',
-                            'amount' => $amount,
+                            'amount' => $renewalAmount ?: $amount,
                             'currency' => $order->get_currency(),
                             'repeat' => false,
                         ],
@@ -270,6 +273,20 @@ if (!class_exists('WC_Centrobill_Api')) {
                         (string)$subscription->get_id() : '',
                 ],
             ];
+
+            if ($renewalAmount) {
+                $request['metadata']['is_vat_included'] = 0;
+            }
+
+            if ($hasSubscriptionTrialPeriod) {
+                $offset = 1;
+                foreach ($order->get_items() as $item) {
+                    $offset = WC_Subscriptions_Product::get_trial_length($item->get_product_id());
+                }
+                $request['sku']['price'][0]['offset'] = sprintf('%ud', $offset);
+            }
+
+            return $request;
         }
 
         /**
@@ -285,36 +302,14 @@ if (!class_exists('WC_Centrobill_Api')) {
                 throw new WC_Centrobill_Exception('Subscription failed');
             }
 
-            $isAuthOrder = $order->get_meta('_subscription_renewal') &&
-                ($subscription->get_time('trial_end') - 3600 > time());
-
-            $request = [
-                'method' => $isAuthOrder ? METHOD_QUICK_SETTLE : METHOD_QUICK_SALE,
-                'ustas' => $consumer = $this->getConsumer($subscription->get_parent_id()),
-                'scode' => $this->calculateScode($consumer),
-                'sku' => [
-                    [
-                        'title' => implode(', ', $this->getProductNames($order)),
-                        'site_id' => $this->getSiteId(),
-                        'currency' => $order->get_currency(),
-                        'price' => [
-                            [
-                                'offset' => '0d',
-                                'price' => $amount,
-                                'repeat' => false,
-                            ]
-                        ]
-                    ]
+            return $this->preparePaymentRequestParams(
+                [
+                    'type' => PAYMENT_TYPE_CONSUMER,
+                    'value' => $this->getConsumer($subscription->get_parent_id()),
                 ],
-                'is_vat_included' => 0,
-            ];
-
-            if ($isAuthOrder) {
-                $initialOrder = wc_get_order($subscription->get_parent_id());
-                $request['auth_transaction_id'] = $initialOrder->get_meta(META_DATA_CB_TRANSACTION_ID);
-            }
-
-            return $request;
+                $order,
+                $amount
+            );
         }
 
         /**
@@ -379,17 +374,6 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
-         * @param int $consumer
-         *
-         * @return string
-         * @throws WC_Centrobill_Exception
-         */
-        private function calculateScode($consumer)
-        {
-            return md5($consumer . $this->getAuthKey());
-        }
-
-        /**
          * @return string
          * @throws WC_Centrobill_Exception
          */
@@ -405,7 +389,7 @@ if (!class_exists('WC_Centrobill_Api')) {
          */
         private function getSubscription(WC_Order $order)
         {
-            if (!WC_Centrobill_Subscription::isWCSubscriptionsPluginActive()) {
+            if (!wc_centrobill_is_subscriptions_plugin_active()) {
                 return null;
             }
 
@@ -440,7 +424,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 throw new WC_Centrobill_Exception('Site ID is missing.');
             }
 
-            return $this->settings[SETTING_KEY_AUTH_KEY];
+            return $this->settings[SETTING_KEY_SITE_ID];
         }
     }
 }

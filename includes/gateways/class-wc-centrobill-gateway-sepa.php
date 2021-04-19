@@ -35,8 +35,7 @@ if (!class_exists('WC_Centrobill_Gateway_Sepa')) {
         }
 
         /**
-         * @param array $data
-         * @param $errors
+         * {@inheritDoc}
          */
         public function before_process_payment(array $data, $errors)
         {

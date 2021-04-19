@@ -8,42 +8,78 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
      */
     abstract class WC_Centrobill_Gateway_Abstract extends WC_Payment_Gateway
     {
-        /**
-         * @var array
-         */
-        public static $availableGateways = [];
-
         public function __construct()
         {
             $this->method_description = __('Take payments online with CentroBill', 'woocommerce-gateway-centrobill');
 
-            // Load the settings
             $this->init_form_fields();
             $this->init_settings();
+            $this->init_hooks();
+            $this->init_supports();
 
-            // Define user set variables
             $this->title = $this->get_option('title');
             $this->description = $this->get_option('description');
 
-            // Actions
-            add_action('woocommerce_receipt_' . $this->id, [$this, 'receipt_page']);
-            add_action('woocommerce_after_checkout_validation', [$this, 'before_process_payment'], 10, 2);
-
-            // Save options
-            if (is_admin()) {
-                add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
-            }
-
-            add_filter('wp_enqueue_scripts', [$this, 'payment_scripts']);
-            add_filter('wc_centrobill_settings_nav_tabs', [$this, 'admin_navigation_tabs']);
-
-            // Payment listener/API hook
-            add_action('woocommerce_api_wc_gateway_centrobill', [new WC_Centrobill_Webhook_Handler(), 'process']);
-
-            if (!$this->is_valid_for_use()) {
+            if (!wc_centrobill_is_valid_for_use()) {
                 $this->enabled = SETTING_VALUE_NO;
             }
         }
+
+        /**
+         * @return void
+         */
+        public function init_hooks()
+        {
+            if (is_admin()) {
+                add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+            }
+            add_action('woocommerce_receipt_' . $this->id, [$this, 'receipt_page']);
+            add_action('woocommerce_after_checkout_validation', [$this, 'before_process_payment'], 8, 2);
+            add_action('woocommerce_api_wc_gateway_centrobill', [new WC_Centrobill_Webhook_Handler(), 'process']);
+            add_filter('wp_enqueue_scripts', [$this, 'payment_scripts']);
+            add_filter('wc_centrobill_settings_nav_tabs', [$this, 'admin_navigation_tabs']);
+
+            if (wc_centrobill_is_subscriptions_enabled()) {
+                add_action('woocommerce_scheduled_subscription_payment_' . $this->id, [$this, 'process_subscription_payment'], 10, 2);
+            }
+        }
+
+        /**
+         * @return void
+         */
+        public function init_supports()
+        {
+            if (wc_centrobill_is_subscriptions_enabled()) {
+                $this->supports = array_merge(
+                    $this->supports,
+                    [
+                        'subscriptions',
+                        'subscription_cancellation',
+                        'subscription_suspension',
+                        'subscription_reactivation',
+                        'subscription_amount_changes',
+                        'subscription_date_changes',
+                        'subscription_payment_method_change',
+                    ]
+                );
+            }
+        }
+
+        /**
+         * @return void
+         */
+        public static function init()
+        {
+            if (!empty($_REQUEST['billing_email'])) {
+                add_filter('woocommerce_available_payment_gateways', ['WC_Centrobill', 'getAvailablePaymentGateways']);
+            }
+        }
+
+        /**
+         * @param array $data
+         * @param WP_Error $errors
+         */
+        abstract public function before_process_payment(array $data, $errors);
 
         /**
          * Process the payment and return the redirect URL if exists
@@ -92,29 +128,12 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
 
         /**
-         * Check if the gateway is enabled and available in the user's country
-         *
-         * @access public
-         * @return bool
-         */
-        public function is_valid_for_use()
-        {
-            $currencies = apply_filters('woocommerce_centrobill_supported_currencies', ['RUB', 'USD', 'EUR', 'UAH']);
-
-            if (!in_array(get_woocommerce_currency(), $currencies, true)) {
-                return false;
-            }
-
-            return true;
-        }
-
-        /**
          * {@inheritDoc}
          */
         public function admin_options()
         {
             WC_Centrobill_Admin_Widget::showAdminOptions(
-                $this->is_valid_for_use(),
+                wc_centrobill_is_valid_for_use(),
                 $this->generate_settings_html([], false)
             );
         }
@@ -150,30 +169,90 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
 
         /**
-         * Process the payment and return the result
-         *
-         * @param int $orderId
-         *
-         * @return array
+         * {@inheritDoc}
          */
         public function process_payment($orderId)
         {
+            $order = wc_get_order($orderId);
+
             try {
-                $order = wc_get_order($orderId);
+                if (wc_centrobill_is_order_contains_subscription($order) && $order->get_total() == 0) {
+                    $order->add_order_note('This subscription has a free trial');
+                }
                 $result = $this->gateway_process_payment($orderId);
+                $this->clear_cached_data($order);
 
                 return [
                     'result' => 'success',
                     'redirect' => $this->receive_order_redirect_url($order, $result),
                 ];
             } catch (Exception $e) {
-                wc_add_notice($e->getMessage(), 'error');
-                wc_centrobill()->logger->error('Process payment failed. ' . $e->getMessage());
+                $note = sprintf(esc_html__('%s payment failed. %s', 'woocommerce-gateway-centrobill'), $this->get_method_title(), $e->getMessage());
+                wc_add_notice($note, 'error');
+                wc_centrobill()->logger->error($note);
+
+                if (!$order->has_status('failed')) {
+                    $order->update_status('failed', $note);
+                } else {
+                    $order->add_order_note($note);
+                }
+
+                WC()->cart->empty_cart();
+                WC()->session->set('order_awaiting_payment', null);
 
                 return [
-                    'result' => 'fail',
-                    'redirect' => '',
+                    'result' => 'failure',
+                    'redirect' => ''
                 ];
+            }
+        }
+
+        /**
+         * @param float $amount
+         * @param WC_Order $order
+         *
+         * @throws WC_Centrobill_Exception
+         */
+        public function process_subscription_payment($amount, WC_Order $order)
+        {
+            wc_centrobill()->logger->info(__METHOD__, ['order_id' => $order->get_id()]);
+
+            try {
+                $response = wc_centrobill()->api->processRecurringPayment($amount, $order);
+            } catch (Exception $e) {
+                wc_centrobill()->logger->error(__METHOD__, $e->getMessage());
+
+                $response = new WP_Error($e->getCode(), $e->getMessage());
+            }
+
+            $this->process_payment_response($order, $response);
+        }
+
+        /**
+         * @param WC_Order $order
+         * @param $response
+         *
+         * @throws WC_Centrobill_Exception
+         */
+        private function process_payment_response(WC_Order $order, $response)
+        {
+            wc_centrobill()->logger->info(__METHOD__, ['order_id' => $order->get_id()]);
+
+            if (!$order instanceof WC_Order) {
+                throw new WC_Centrobill_Exception('Invalid WooCommerce order.');
+            }
+
+            if (is_wp_error($response)) {
+                $order->add_order_note('Payment transaction failed.');
+                $order->update_status(WC_STATUS_FAILED, $response->get_error_message());
+
+                return;
+            }
+
+            if (wc_centrobill_is_subscription_payment_successful($response)) {
+                $order->payment_complete($response['transactionId']);
+            } else {
+                $order->update_status(WC_STATUS_FAILED, wc_centrobill_retrieve_response_text($response));
             }
         }
 
@@ -229,5 +308,16 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
                 update_user_meta($order->get_customer_id(), META_DATA_CB_USER, $data['consumer']['id']);
             }
         }
+
+        /**
+         * @param WC_Order $order
+         */
+        private function clear_cached_data(WC_Order $order)
+        {
+            wc_centrobill_remove_session_keys([SESSION_KEY_EMAIL]);
+            delete_transient(WC_Centrobill::getPMTransientKey($order->get_billing_email()));
+        }
     }
 }
+
+WC_Centrobill_Gateway_Abstract::init();

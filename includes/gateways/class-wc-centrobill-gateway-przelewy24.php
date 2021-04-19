@@ -6,7 +6,7 @@ if (!class_exists('WC_Centrobill_Gateway_Przelewy24')) {
     /**
      * Class WC_Centrobill_Gateway_Przelewy24
      */
-    class WC_Centrobill_Gateway_Przelewy24 extends WC_Centrobill_Gateway_Onlinebanking_Abstract
+    class WC_Centrobill_Gateway_Przelewy24 extends WC_Centrobill_Gateway_Local_payment
     {
         public function __construct()
         {
