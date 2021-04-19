@@ -16,7 +16,6 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
             $this->has_fields = true;
 
             add_action('admin_notices', [$this, 'show_admin_notice']);
-            add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 
             parent::__construct();
         }
@@ -52,16 +51,13 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
         }
 
         /**
-         * @param array $data
-         * @param WP_Error $errors
+         * {@inheritDoc}
          */
         public function before_process_payment(array $data, $errors)
         {
             if ($data['payment_method'] !== $this->id) {
                 return;
             }
-
-            $data = array_merge(wc_centrobill_retrieve_post_param(), $data);
 
             $tokenRequiredFields = [
                 'centrobill_card_number' => __('Card Number', 'centrobill'),
@@ -81,21 +77,6 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
                     $errors->add('validation', sprintf('<strong>%s</strong> has invalid format.', $label));
                 }
             }
-
-            if (!empty($errors->errors)) {
-                return;
-            }
-
-            try {
-                $response = wc_centrobill()->api->getToken($data);
-
-                wc_centrobill_set_post_param('centrobill_card_token', $response['token']);
-                wc_centrobill_set_post_param('centrobill_card_token_expire', $response['expireAt']);
-
-            } catch (WC_Centrobill_Exception $e) {
-                $errors->add('error', $e->getMessage());
-                wc_centrobill()->logger->error(sprintf('%s | %s', __METHOD__, $e->getMessage()));
-            }
         }
 
         /**
@@ -103,8 +84,18 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
          */
         public function gateway_process_payment($orderId)
         {
+            try {
+                $response = wc_centrobill()->api->getToken(wc_centrobill_retrieve_post_param());
+                wc_centrobill_set_post_param('centrobill_card_token', $response['token']);
+                wc_centrobill_set_post_param('centrobill_card_token_expire', $response['expireAt']);
+            } catch (WC_Centrobill_Exception $e) {
+                wc_centrobill()->logger->error(__METHOD__, $e->getMessage());
+
+                throw new $e;
+            }
+
             if (!wc_centrobill_retrieve_post_param('centrobill_card_token')) {
-                throw new WC_Centrobill_Exception('Gateway error. Payment token was not received.');
+                throw new WC_Centrobill_Exception('Payment token was not received.');
             }
 
             return wc_centrobill()->api->pay(

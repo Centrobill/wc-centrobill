@@ -3,6 +3,22 @@
 defined('ABSPATH') || exit();
 
 /**
+ * Check if the gateway is enabled and available in the user's country
+ *
+ * @access public
+ * @return bool
+ */
+function wc_centrobill_is_valid_for_use() {
+    $currencies = apply_filters('woocommerce_centrobill_supported_currencies', ['RUB', 'USD', 'EUR', 'UAH']);
+
+    if (!in_array(get_woocommerce_currency(), $currencies, true)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * @param string $param
  * @param mixed $default
  *
@@ -43,7 +59,7 @@ function wc_centrobill_is_valid_json($string) {
  * @return string
  */
 function wc_centrobill_get_ip_address() {
-    return WC_Geolocation::get_external_ip_address();
+    return WC_Geolocation::get_ip_address() ?: WC_Geolocation::get_external_ip_address();
 }
 
 /**
@@ -80,7 +96,55 @@ function wc_centrobill_get_ipn_url(array $data = []) {
  * @return string
  */
 function wc_centrobill_retrieve_response_text(array $response) {
-    return !empty($response['response_text']) ? $response['response_text'] : '';
+
+    $message = '';
+    if (!empty($response['response_text'])) {
+        $message = $response['response_text'];
+    } elseif (!empty($response['error_message'])) {
+        $message = $response['error_message'];
+    } elseif (!empty($response['payment']['description'])) {
+        $message = $response['payment']['description'];
+    }
+
+    return $message;
+}
+
+/**
+ * @param array $response
+ * @return bool
+ */
+function wc_centrobill_is_subscription_payment_successful(array $response) {
+    return isset($response['payment']['transactionId']) &&
+        isset($response['payment']['code']) &&
+        (int)$response['payment']['code'] === 0;
+}
+
+/**
+ * Checks if Woocommerce Subscriptions is enabled or not
+ *
+ * @return bool
+ */
+function wc_centrobill_is_subscriptions_plugin_active() {
+    return class_exists('WC_Subscriptions') && class_exists('WC_Subscriptions_Order');
+}
+
+/**
+ * @return bool
+ */
+function wc_centrobill_is_subscriptions_enabled() {
+    $settings = get_option('woocommerce_centrobill_cc_settings', []);
+
+    return isset($settings[SETTING_KEY_ALLOW_SUBSCRIPTIONS])
+        && $settings[SETTING_KEY_ALLOW_SUBSCRIPTIONS] === SETTING_VALUE_YES;
+}
+
+/**
+ * @param WC_Order $order
+ * @return bool
+ */
+function wc_centrobill_is_order_contains_subscription(WC_Order $order) {
+    return function_exists('wcs_order_contains_subscription') &&
+        (wcs_order_contains_subscription($order) || wcs_order_contains_renewal($order));
 }
 
 /**

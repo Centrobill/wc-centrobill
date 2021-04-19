@@ -2,11 +2,11 @@
 
 defined('ABSPATH') || exit;
 
-if (!class_exists('WC_Centrobill_Gateway_Onlinebanking_Abstract')) {
+if (!class_exists('WC_Centrobill_Gateway_Local_payment')) {
     /**
-     * Class WC_Centrobill_Gateway_Onlinebanking_Abstract
+     * Class WC_Centrobill_Gateway_Local_payment
      */
-    abstract class WC_Centrobill_Gateway_Onlinebanking_Abstract extends WC_Centrobill_Gateway_Abstract
+    abstract class WC_Centrobill_Gateway_Local_payment extends WC_Centrobill_Gateway_Abstract
     {
         /**
          * {@inheritDoc}
@@ -26,7 +26,7 @@ if (!class_exists('WC_Centrobill_Gateway_Onlinebanking_Abstract')) {
         /**
          * {@inheritDoc}
          */
-        public function before_process_payment()
+        public function before_process_payment(array $data, $errors)
         {
         }
 

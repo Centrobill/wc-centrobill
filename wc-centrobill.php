@@ -23,6 +23,8 @@ if (!class_exists('WC_Centrobill')) {
      */
     class WC_Centrobill
     {
+        const TRANSIENT_PM_TTL = 60 * 60 * 24;
+
         /**
          * @var WC_Centrobill $instance
          */
@@ -71,9 +73,8 @@ if (!class_exists('WC_Centrobill')) {
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/class-wc-centrobill-webhook-handler.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/class-wc-centrobill-gateway.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-cc.php',
-                WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-onlinebanking-abstract.php',
+                WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-local-payment.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-onlinebanking.php',
-                WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-subscription.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-sepa.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-ideal.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-giropay.php',
@@ -110,12 +111,7 @@ if (!class_exists('WC_Centrobill')) {
          */
         public function addGateways($methods)
         {
-            if (WC_Centrobill_Subscription::isWCSubscriptionsPluginActive()) {
-                $methods[] = WC_Centrobill_Subscription::class;
-            } else {
-                $methods[] = WC_Centrobill_Gateway_CC::class;
-            }
-
+            $methods[] = WC_Centrobill_Gateway_CC::class;
             $methods[] = WC_Centrobill_Gateway_Sepa::class;
             $methods[] = WC_Centrobill_Gateway_Giropay::class;
             $methods[] = WC_Centrobill_Gateway_Ideal::class;
@@ -156,10 +152,11 @@ if (!class_exists('WC_Centrobill')) {
          */
         public static function getAvailablePaymentGateways(array $gateways)
         {
-            if (!$response = WC()->session->get(SESSION_KEY_PM)) {
+            $email = WC()->session->get(SESSION_KEY_EMAIL);
+            if (false === ($response = get_transient(self::getPMTransientKey($email)))) {
                 try {
-                    $response = wc_centrobill()->api->getPaymentMethods(WC()->session->get(SESSION_KEY_EMAIL));
-                    WC()->session->set(SESSION_KEY_PM, $response);
+                    $response = wc_centrobill()->api->getPaymentMethods($email);
+                    set_transient(self::getPMTransientKey($email), $response, self::TRANSIENT_PM_TTL);
                 } catch (Exception $e) {
                     $response = [];
                     wc_centrobill()->logger->error($e->getMessage());
@@ -177,6 +174,16 @@ if (!class_exists('WC_Centrobill')) {
             }
 
             return $gateways;
+        }
+
+        /**
+         * @param string $email
+         *
+         * @return string
+         */
+        public static function getPMTransientKey($email)
+        {
+            return sprintf(SESSION_KEY_PM, md5($email));
         }
 
         private function __clone() {}

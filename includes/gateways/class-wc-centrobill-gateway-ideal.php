@@ -6,7 +6,7 @@ if (!class_exists('WC_Centrobill_Gateway_Ideal')) {
     /**
      * Class WC_Centrobill_Gateway_Ideal
      */
-    class WC_Centrobill_Gateway_Ideal extends WC_Centrobill_Gateway_Onlinebanking_Abstract
+    class WC_Centrobill_Gateway_Ideal extends WC_Centrobill_Gateway_Local_payment
     {
         public function __construct()
         {
