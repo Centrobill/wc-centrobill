@@ -98,7 +98,7 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         /**
          * Outputs fields for entering payment information
          *
-         * @return mixed
+         * @return void
          */
         abstract public function payment_form();
 
