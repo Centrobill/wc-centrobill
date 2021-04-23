@@ -1,15 +1,13 @@
 # Centrobill plugin for WooCommerce  
-Version 2.0.0
+Version 2.0.1
+
 ## Description
 CentroBill Payment Gateway plugin for WooCommerce   
-
-
-
 
 ##  Plugin Installation Instructions  
 
 ### Preparation 
-* Verify that you are running the latest versiogit sn of __Wordpress__ and __Woocommerce__. Plugin requires at least __WP 4.0__  & __WooCommerce 2.2+__, and has been tested to work with versions up to: __WP 5.7__ & __WooCommerce 5.1.0__.
+* Verify that you are running the latest versiog of __Wordpress__ and __Woocommerce__. Plugin requires at least __WP 4.7__  & __WooCommerce 3.0__, and has been tested to work with versions up to: __WP 5.7.1__ & __WooCommerce 5.2.2__.
 * Install any pending updates if necessary. 
 * In case __WooCommerce__ plugin is not installed, please install it and update it.
 
@@ -23,12 +21,21 @@ CentroBill Payment Gateway plugin for WooCommerce
 * Click __Upload Plugin__, click __Choose File__ to select the zip file from your computer. 
 * Install the plugin and activate it.  
 
-### Plugin configuration 
-* Go to __WooCommerce__ menu, click __Settings__. 
-* In __Checkout__ menu tab, under __Checkout options__ click on __Centrobill__ and make sure __Enable/Disable__ option is __checked__. 
-* Locate __Auth key__ input form field on a page and paste your __API auth key__ into it. 
+### Plugin configuration
+* Go to __WooCommerce__ menu -> __Settings__ and click on __Payments__ menu tab.
+* In __Payments__ menu tab click on __Centrobill Credit Cards__ and make sure __Enable/Disable__ option is __checked__.
+* Locate __Authentication key__ input form field on a page and paste your __API auth key__ into it.
+* Locate __Site ID__ input form field on a page and paste your __site ID__ into it.
 * If you don't have your Personal Centrobill __API Auth Key__, please contact your Centrobill account manager.
-* __Save Changes__.  
+* __Save Changes__.
+
+### Migrate from v1 to v2
+* Install a new plugin (see __Install the plugin__ section)
+* Go to __WooCommerce__ -> __Settings__ and click on __Payments__ menu tab.
+* In __Payments__ menu tab click on __Centrobill Credit Cards__.
+* Locate __Authentication key__ input form field on a page with a value (ex. __{AuthKey}:{siteId}__).
+* Split the value by "__:__". __{AuthKey}__ leave in the __Authentication key__ field and __{siteId}__ move to the __Site ID__ input field.
+* __Save Changes__.
 
 ## Setup your account in the Centrobill Merchant Portal
 

@@ -154,7 +154,7 @@ if (!class_exists('WC_Centrobill_Api')) {
             }
             $data['timeout'] = 60;
 
-            wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => $data['body']]);
+            wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => ($endpoint === API_ENDPOINT_TOKENIZE) ? [] : $data['body']]);
             $response = wp_remote_post($url, $data);
 
             $code = wp_remote_retrieve_response_code($response);

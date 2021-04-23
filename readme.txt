@@ -2,17 +2,17 @@
 Plugin Name: Centrobill WooCommerce Addon
 Plugin URI: https://wordpress.org/plugins/wc_centrobill/
 Tags: woocommerce plugin centrobill
-Requires at least: WP 4.0 & WooCommerce 2.2+
-Tested up to: 5.7 & WooCommerce 5.1.0
-Stable tag: 2.0.0
-Version: 2.0.0
+Requires at least: WP 4.9 & WooCommerce 3.0
+Tested up to: 5.7.1 & WooCommerce 5.2.2
+Stable tag: 2.0.1
+Version: 2.0.1
 License: http://www.gnu.org/licenses/gpl-3.0.html
 
 == Description ==
 CentroBill Payment Gateway plugin for WooCommerce
 
 == Preparation ==
-* Verify that you are running the latest version of WordPress and Woocommerce. Plugin requires at least WP 4.0 & WooCommerce 2.2+, and has been tested to work with versions up to: WP 5.3.1 & WooCommerce 3.8.1.
+* Verify that you are running the latest version of WordPress and Woocommerce. Plugin requires at least WP 4.9 & WooCommerce 3.0, and has been tested to work with versions up to: WP 5.7.1 & WooCommerce 5.2.2.
 * Install any pending updates if necessary.
 * In case WooCommerce plugin is not installed, please install it and update it.
 
@@ -27,10 +27,19 @@ CentroBill Payment Gateway plugin for WooCommerce
 * Install the plugin and activate it.
 
 == Plugin configuration ==
-* Go to WooCommerce menu, click Settings.
-* In Checkout menu tab, under Checkout options click on Centrobill and make sure Enable/Disable option is checked.
-* Locate Auth key input form field on a page and paste your API auth key into it.
+* Go to WooCommerce menu -> Settings and click on Payments menu tab.
+* In Payments menu tab click on Centrobill and make sure Enable/Disable option is checked.
+* Locate "Authentication key" input form field on a page and paste your API auth key into it.
+* Locate "Site ID" input form field on a page and paste your site ID into it.
 * If you don't have your Personal Centrobill API Auth Key, please contact your Centrobill account manager.
+* Save Changes.
+
+== Migrate from v1 to v2
+* Install a new plugin (see "Install the plugin" section)
+* Go to WooCommerce -> Settings and click on Payments menu tab.
+* In Payments menu tab click on Centrobill Credit Cards.
+* Locate "Authentication key" input form field on a page with a value (ex. {AuthKey}:{siteId}).
+* Split the value by ":". {AuthKey} leave in the "Authentication key" field and {siteId} move to the "Site ID" input field.
 * Save Changes.
 
 == Setup your account in the Centrobill Merchant Portal ==

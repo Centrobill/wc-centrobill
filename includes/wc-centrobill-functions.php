@@ -115,8 +115,8 @@ function wc_centrobill_retrieve_response_text(array $response) {
  */
 function wc_centrobill_is_subscription_payment_successful(array $response) {
     return isset($response['payment']['transactionId']) &&
-        isset($response['payment']['code']) &&
-        (int)$response['payment']['code'] === 0;
+        isset($response['payment']['code']) && (int)$response['payment']['code'] === 0 &&
+        isset($response['payment']['action']) && $response['payment']['action'] === ACTION_CHARGE;
 }
 
 /**
