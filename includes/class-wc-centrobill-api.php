@@ -154,7 +154,7 @@ if (!class_exists('WC_Centrobill_Api')) {
             }
             $data['timeout'] = 60;
 
-            wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => $data['body']]);
+            wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => ($endpoint === API_ENDPOINT_TOKENIZE) ? [] : $data['body']]);
             $response = wp_remote_post($url, $data);
 
             $code = wp_remote_retrieve_response_code($response);
@@ -255,13 +255,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                         ],
                     ],
                 ],
-                'consumer' => [
-                    'firstName' => $order->get_billing_first_name(),
-                    'lastName' => $order->get_billing_last_name(),
-                    'externalId' => $this->getExternalUserId($order->get_billing_email()),
-                    'email' => $order->get_billing_email(),
-                    'ip' => wc_centrobill_get_ip_address(),
-                ],
+                'consumer' => $this->prepareConsumerData($order),
                 'url' => [
                     'ipnUrl' => wc_centrobill_get_ipn_url($this->settings),
                     'redirectUrl' => $order->get_checkout_order_received_url(),
@@ -310,6 +304,67 @@ if (!class_exists('WC_Centrobill_Api')) {
                 $order,
                 $amount
             );
+        }
+
+        /**
+         * @param WC_Order $order
+         *
+         * @return array
+         */
+        private function prepareConsumerData(WC_Order $order)
+        {
+            $data = [
+                'email' => $order->get_billing_email(),
+                'firstName' => $order->get_billing_first_name(),
+                'lastName' => $order->get_billing_last_name(),
+                'externalId' => $this->getExternalUserId($order->get_billing_email()),
+                'ip' => wc_centrobill_get_ip_address(),
+                'userAgent' => wc_centrobill_get_useragent(),
+                'browserLanguage' => wc_centrobill_get_browser_language(),
+                'browserAcceptHeader' => wc_centrobill_get_browser_accept_header(),
+            ];
+
+            if (!empty($phone = $order->get_billing_phone())) {
+                $data['phone'] = $phone;
+            }
+
+            if (!empty($country = wc_centrobill_country_convert_to_iso3($order->get_billing_country()))) {
+                $data['country'] = $country;
+            }
+
+            if (!empty($state = $order->get_billing_state())) {
+                $data['state'] = $state;
+            }
+
+            if (!empty($city = $order->get_billing_city())) {
+                $data['city'] = $city;
+            }
+
+            if (!empty($zip = $order->get_billing_postcode())) {
+                $data['zip'] = $zip;
+            }
+
+            if (!empty($javaEnabled = wc_centrobill_retrieve_post_param('centrobill_browser_java_enabled'))) {
+                $data['browserJavaEnabled'] = $javaEnabled;
+            }
+
+            if (!empty($colorDepth = wc_centrobill_retrieve_post_param('centrobill_browser_color_depth'))) {
+                $data['browserColorDepth'] = $colorDepth;
+            }
+
+            if (!empty($screenHeight = wc_centrobill_retrieve_post_param('centrobill_browser_screen_height'))) {
+                $data['browserScreenHeight'] = $screenHeight;
+            }
+
+            if (!empty($screenWidth = wc_centrobill_retrieve_post_param('centrobill_browser_screen_width'))) {
+                $data['browserScreenWidth'] = $screenWidth;
+            }
+
+            if (!empty($timezone = wc_centrobill_retrieve_post_param('centrobill_browser_timezone'))) {
+                $data['browserTimezone'] = $timezone;
+            }
+
+            return $data;
         }
 
         /**

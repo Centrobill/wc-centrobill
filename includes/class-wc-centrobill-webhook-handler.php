@@ -44,7 +44,7 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
                 $data = json_decode($callback, true);
                 if (!empty($data['metadata']['wp_order_id'])) {
                     $order = wc_get_order($data['metadata']['wp_order_id']);
-                    if ((int)$data['payment']['code'] === RESULT_CODE_SUCCESS) {
+                    if ((int)$data['payment']['code'] === RESULT_CODE_SUCCESS && $data['payment']['status'] === STATUS_SUCCESS) {
                         $status = WC_STATUS_COMPLETED;
                         foreach ($order->get_items() as $product) {
                             if (!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {

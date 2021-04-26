@@ -38,6 +38,10 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
             add_action('woocommerce_api_wc_gateway_centrobill', [new WC_Centrobill_Webhook_Handler(), 'process']);
             add_filter('wp_enqueue_scripts', [$this, 'payment_scripts']);
             add_filter('wc_centrobill_settings_nav_tabs', [$this, 'admin_navigation_tabs']);
+            add_filter('woocommerce_create_order', [$this, 'remove_awaiting_order']);
+            add_action('woocommerce_before_thankyou', function ($orderId) {
+                wc_get_order($orderId);
+            });
 
             if (wc_centrobill_is_subscriptions_enabled()) {
                 add_action('woocommerce_scheduled_subscription_payment_' . $this->id, [$this, 'process_subscription_payment'], 10, 2);
@@ -94,7 +98,7 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         /**
          * Outputs fields for entering payment information
          *
-         * @return mixed
+         * @return void
          */
         abstract public function payment_form();
 
@@ -169,6 +173,16 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
 
         /**
+         * If the order is pending payment don't resume it, create a new order instead
+         */
+        public function remove_awaiting_order()
+        {
+            if (isset(WC()->session)) {
+                WC()->session->set('order_awaiting_payment', null);
+            }
+        }
+
+        /**
          * {@inheritDoc}
          */
         public function process_payment($orderId)
@@ -187,8 +201,12 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
                     'redirect' => $this->receive_order_redirect_url($order, $result),
                 ];
             } catch (Exception $e) {
+                wc_add_notice(
+                    sprintf(esc_html__('%s payment failed. Payment gateway error.', 'woocommerce-gateway-centrobill'), $this->get_method_title()),
+                    'error'
+                );
+
                 $note = sprintf(esc_html__('%s payment failed. %s', 'woocommerce-gateway-centrobill'), $this->get_method_title(), $e->getMessage());
-                wc_add_notice($note, 'error');
                 wc_centrobill()->logger->error($note);
 
                 if (!$order->has_status('failed')) {
@@ -196,9 +214,6 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
                 } else {
                     $order->add_order_note($note);
                 }
-
-                WC()->cart->empty_cart();
-                WC()->session->set('order_awaiting_payment', null);
 
                 return [
                     'result' => 'failure',
@@ -234,7 +249,7 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          *
          * @throws WC_Centrobill_Exception
          */
-        private function process_payment_response(WC_Order $order, $response)
+        protected function process_payment_response(WC_Order $order, $response)
         {
             wc_centrobill()->logger->info(__METHOD__, ['order_id' => $order->get_id()]);
 
@@ -290,7 +305,7 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
 
             if (
                 !empty($data['payment']['url']) &&
-                (!empty($data['payment']['action']) && $data['payment']['action'] === 'redirect')
+                (!empty($data['payment']['action']) && $data['payment']['action'] === ACTION_REDIRECT)
             ) {
                 return $data['payment']['url'];
             }

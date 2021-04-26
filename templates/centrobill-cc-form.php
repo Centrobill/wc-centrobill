@@ -10,7 +10,9 @@
     }
 </style>
 
-<fieldset id="wc-centrobill-cc-form" class='wc-credit-card-form wc-payment-form'>
+<?php include_once WC_CENTROBILL_PLUGIN_PATH . '/templates/centrobill-browser-form.php'; ?>
+
+<fieldset id="wc-centrobill-cc-form" class="wc-credit-card-form wc-payment-form">
     <ul class="woocommerce-error" style="display:none"></ul>
     <div>
         <?php if (false): ?>

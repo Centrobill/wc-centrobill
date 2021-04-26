@@ -1,6 +1,6 @@
 <?php defined('ABSPATH') || exit; ?>
 
-<fieldset id="wc-centrobill-cc-form" class='wc-credit-card-form wc-payment-form'>
+<fieldset id="wc-centrobill-cc-form" class="wc-credit-card-form wc-payment-form">
     <ul class="woocommerce-error" style="display:none"></ul>
     <div>
         <p class="form-row form-row-wide">
