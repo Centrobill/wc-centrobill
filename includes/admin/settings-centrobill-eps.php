@@ -7,7 +7,7 @@ return [
         'title' => __('Enable/Disable', 'woocommerce-gateway-centrobill'),
         'type' => 'checkbox',
         'label' => __('Enable Centrobill EPS', 'woocommerce-gateway-centrobill'),
-        'default' => __(SETTING_VALUE_YES, 'woocommerce-gateway-centrobill'),
+        'default' => SETTING_VALUE_YES,
     ],
     'title' => [
         'title' => __('Title', 'woocommerce-gateway-centrobill'),

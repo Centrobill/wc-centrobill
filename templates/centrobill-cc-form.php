@@ -15,10 +15,10 @@
 <fieldset id="wc-centrobill-cc-form" class="wc-credit-card-form wc-payment-form">
     <ul class="woocommerce-error" style="display:none"></ul>
     <div>
-        <?php if (false): ?>
+        <?php if ($show_cardholder_name): ?>
         <p class="form-row form-row-wide">
             <label for="centrobill_cardholder_name">
-                <?php esc_html_e('Card Holder name'); ?><span class="required">*</span>
+                <?php esc_html_e("Cardholder's name"); ?><span class="required">*</span>
             </label>
             <input id="centrobill_cardholder_name" name="centrobill_cardholder_name" class="input-text wc-credit-card-form-cardholder-name" type="text" value="" maxlength="50" autocomplete="on" placeholder="John Doe" />
         </p>
@@ -41,8 +41,6 @@
             </label>
             <input id="centrobill_cvv" name="centrobill_cvv" class="input-text wc-credit-card-form-card-cvc" type="password" maxlength="4" value="" pattern="[0-9]*" autocomplete="off" placeholder="CVV" autocompletetype="cc-csc" />
         </p>
-        <input id="centrobill_card_token" name="centrobill_card_token" type="hidden" value="">
-        <input id="centrobill_card_token_expire" name="centrobill_card_token_expire" type="hidden" value="">
     </div>
     <div class="clear"></div>
 </fieldset>

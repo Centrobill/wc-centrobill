@@ -60,6 +60,7 @@ const SETTING_KEY_AUTH_KEY = 'auth_key';
 const SETTING_KEY_SITE_ID = 'site_id';
 const SETTING_KEY_DEBUG = 'debug';
 const SETTING_KEY_IPN_URL = 'ipn_url';
+const SETTING_KEY_CC_CARDHOLDER = 'show_cardholder_name';
 
 const SETTING_VALUE_YES = 'yes';
 const SETTING_VALUE_NO = 'no';

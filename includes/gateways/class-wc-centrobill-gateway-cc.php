@@ -47,7 +47,9 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
          */
         public function payment_form()
         {
-            wc_centrobill_get_template('centrobill-cc-form.php');
+            wc_centrobill_get_template('centrobill-cc-form.php', [
+                'show_cardholder_name' => $this->isNeedShowCardholderName(),
+            ]);
         }
 
         /**
@@ -59,11 +61,17 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
                 return;
             }
 
+            $data = array_merge(wc_centrobill_retrieve_post_param(), $data);
+
             $tokenRequiredFields = [
-                'centrobill_card_number' => __('Card Number', 'centrobill'),
-                'centrobill_expiration_date' => __('Expiry (MM/YY)', 'centrobill'),
-                'centrobill_cvv' => __('CVN/CVV', 'centrobill'),
+                'centrobill_card_number' => __('Card Number', 'woocommerce-gateway-centrobill'),
+                'centrobill_expiration_date' => __('Expiry (MM/YY)', 'woocommerce-gateway-centrobill'),
+                'centrobill_cvv' => __('CVN/CVV', 'woocommerce-gateway-centrobill'),
             ];
+
+            if ($this->isNeedShowCardholderName()) {
+                $tokenRequiredFields['centrobill_cardholder_name'] = __("Cardholder's name", 'woocommerce-gateway-centrobill');
+            }
 
             foreach ($tokenRequiredFields as $field => $label) {
                 if (!array_key_exists($field, $data)) {
@@ -73,38 +81,73 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
                 if (empty($data[$field])) {
                     $errors->add('required-field', sprintf('<strong>%s</strong> is a required field.', $label));
                 }
-                if ($field === 'centrobill-expiration-date' && !empty($data[$field]) && !wc_centrobill_check_expiration_date($data[$field])) {
+                if ($field === 'centrobill_expiration_date' && !empty($data[$field]) && !wc_centrobill_check_expiration_date($data[$field])) {
                     $errors->add('validation', sprintf('<strong>%s</strong> has invalid format.', $label));
+                }
+                if ($field === 'centrobill_cardholder_name' && !empty($data[$field])) {
+                    $names = wc_centrobill_parse_cardholder_name($data[$field]);
+                    if (empty($names[0]) || empty($names[1])) {
+                        $errors->add('validation', sprintf('<strong>%s</strong> is invalid.', $label));
+                    }
                 }
             }
         }
 
         /**
          * {@inheritDoc}
+         * @throws WC_Data_Exception
          */
         public function gateway_process_payment($orderId)
         {
             try {
                 $response = wc_centrobill()->api->getToken(wc_centrobill_retrieve_post_param());
-                wc_centrobill_set_post_param('centrobill_card_token', $response['token']);
-                wc_centrobill_set_post_param('centrobill_card_token_expire', $response['expireAt']);
             } catch (WC_Centrobill_Exception $e) {
                 wc_centrobill()->logger->error(__METHOD__, $e->getMessage());
 
                 throw new $e;
             }
 
-            if (!wc_centrobill_retrieve_post_param('centrobill_card_token')) {
+            if (empty($response['token'])) {
                 throw new WC_Centrobill_Exception('Payment token was not received.');
+            }
+
+            if ($this->isNeedShowCardholderName()) {
+                $this->saveCardholderName($orderId);
             }
 
             return wc_centrobill()->api->pay(
                 [
                     'type' => PAYMENT_TYPE_TOKEN,
-                    'value' => wc_centrobill_retrieve_post_param('centrobill_card_token'),
+                    'value' => $response['token'],
                 ],
                 $orderId
             );
+        }
+
+        /**
+         * @param int $orderId
+         *
+         * @throws WC_Data_Exception
+         * @return void
+         */
+        private function saveCardholderName($orderId)
+        {
+            $order = wc_get_order($orderId);
+
+            $cardholderName = wc_centrobill_retrieve_post_param('centrobill_cardholder_name');
+            list($firstName, $lastName) = wc_centrobill_parse_cardholder_name($cardholderName);
+
+            $order->set_billing_first_name($firstName);
+            $order->set_billing_last_name($lastName);
+            $order->save();
+        }
+
+        /**
+         * @return bool
+         */
+        private function isNeedShowCardholderName()
+        {
+            return $this->get_option(SETTING_KEY_CC_CARDHOLDER) === SETTING_VALUE_YES;
         }
     }
 }
