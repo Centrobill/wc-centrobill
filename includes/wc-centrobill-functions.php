@@ -96,6 +96,19 @@ function wc_centrobill_check_expiration_date($date) {
 }
 
 /**
+ * @param string $name
+ * @return array
+ */
+function wc_centrobill_parse_cardholder_name($name) {
+    $names = explode(' ', $name);
+
+    $firstName = empty($names[0]) ? '' : array_shift($names);
+    $lastName = trim(implode(' ', $names));
+
+    return [$firstName, $lastName];
+}
+
+/**
  * @param string $data
  * @return bool
  */

@@ -97,13 +97,17 @@ if (!class_exists('WC_Centrobill_Logger')) {
          */
         private static function sanitizeAndFormatData($message, $context, $prettifyOutput = false)
         {
+            if (isset($context['body']) && is_string($context['body'])) {
+                $context['body'] = json_decode($context['body'], true);
+            }
+
             foreach (self::$excludedParams as $excludedParam) {
                 if (isset($context[$excludedParam])) {
-                    $context[$excludedParam] = '***';
+                    $context[$excludedParam] = '';
                 }
 
                 if (isset($context['body'][$excludedParam])) {
-                    $context['body'][$excludedParam] = '***';
+                    $context['body'][$excludedParam] = '';
                 }
             }
 

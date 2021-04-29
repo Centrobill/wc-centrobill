@@ -7,7 +7,7 @@ return [
         'title' => __('Enable/Disable', 'woocommerce-gateway-centrobill'),
         'type' => 'checkbox',
         'label' => __('Enable CentroBill payment gateway', 'woocommerce-gateway-centrobill'),
-        'default' => __(SETTING_VALUE_YES, 'woocommerce-gateway-centrobill'),
+        'default' => SETTING_VALUE_YES,
     ],
     'title' => [
         'title' => __('Title', 'woocommerce-gateway-centrobill'),
@@ -41,11 +41,18 @@ return [
         'default' => wc_centrobill_get_ipn_url(),
         'custom_attributes' => ['readonly' => 'readonly'],
     ],
+    SETTING_KEY_CC_CARDHOLDER => [
+        'title' => __('Cardholder name', 'woocommerce-gateway-centrobill'),
+        'type' => 'checkbox',
+        'label' => __("Enable cardholder's name", 'woocommerce-gateway-centrobill'),
+        'default' => SETTING_VALUE_YES,
+        'description' => __("Show cardholder's name field on the credit card form.", 'woocommerce-gateway-centrobill'),
+    ],
     SETTING_KEY_DEBUG => [
         'title' => __('Log debug messages', 'woocommerce-gateway-centrobill'),
         'type' => 'checkbox',
         'label' => __('Enable logging', 'woocommerce-gateway-centrobill'),
-        'default' => __(SETTING_VALUE_NO, 'woocommerce-gateway-centrobill'),
+        'default' => SETTING_VALUE_NO,
         'description' => __('Log Centrobill events, such as IPN requests, responses, etc. <br>Note: using this for debugging purposes only and deleting the logs when finished.', 'woocommerce-gateway-centrobill'),
     ],
     'subscription_settings' => [
@@ -57,6 +64,6 @@ return [
         'type' => 'checkbox',
         'title' => __('Enable/Disable', 'woocommerce-gateway-centrobill'),
         'label' => __('Enable subscription payments', 'woocommerce-gateway-centrobill'),
-        'default' => __(SETTING_VALUE_YES, 'woocommerce-gateway-centrobill'),
+        'default' => SETTING_VALUE_YES,
     ]
 ];
