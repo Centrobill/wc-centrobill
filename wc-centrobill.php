@@ -23,7 +23,7 @@ if (!class_exists('WC_Centrobill')) {
      */
     class WC_Centrobill
     {
-        const TRANSIENT_PM_TTL = 60 * 60 * 24;
+        const TRANSIENT_PM_TTL = 60 * 10;
 
         /**
          * @var WC_Centrobill $instance
