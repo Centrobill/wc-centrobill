@@ -244,7 +244,7 @@ if (!class_exists('WC_Centrobill_Api')) {
             $request = [
                 'paymentSource' => $paymentSource,
                 'sku' => [
-                    'title' => join(', ', $this->getProductNames($order)),
+                    'title' => mb_substr(join(', ', $this->getProductNames($order)), 0, 64),
                     'siteId' => $this->getSiteId(),
                     'price' => [
                         [
