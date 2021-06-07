@@ -230,7 +230,7 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         public function process_subscription_payment($amount, WC_Order $order)
         {
-            wc_centrobill()->logger->info(__METHOD__, ['order_id' => $order->get_id()]);
+            wc_centrobill()->logger->info(__METHOD__, ['renewal order_id' => $order->get_id()]);
 
             try {
                 $response = wc_centrobill()->api->processRecurringPayment($amount, $order);
@@ -251,7 +251,7 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         protected function process_payment_response(WC_Order $order, $response)
         {
-            wc_centrobill()->logger->info(__METHOD__, ['order_id' => $order->get_id()]);
+            wc_centrobill()->logger->info(__METHOD__, ['renewal order_id' => $order->get_id()]);
 
             if (!$order instanceof WC_Order) {
                 throw new WC_Centrobill_Exception('Invalid WooCommerce order.');
@@ -299,10 +299,6 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         protected function receive_order_redirect_url(WC_Order $order, $data)
         {
-            if (is_user_logged_in()) {
-                $this->update_consumer_id($order, $data);
-            }
-
             if (
                 !empty($data['payment']['url']) &&
                 (!empty($data['payment']['action']) && $data['payment']['action'] === ACTION_REDIRECT)
@@ -311,17 +307,6 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
             }
 
             return $this->get_return_url($order);
-        }
-
-        /**
-         * @param WC_Order $order
-         * @param array|null $data
-         */
-        private function update_consumer_id(WC_Order $order, $data)
-        {
-            if (!empty($data['consumer']['id']) && get_current_user_id()) {
-                update_user_meta($order->get_customer_id(), META_DATA_CB_USER, $data['consumer']['id']);
-            }
         }
 
         /**

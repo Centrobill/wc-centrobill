@@ -378,7 +378,7 @@ if (!class_exists('WC_Centrobill_Api')) {
         {
             $currentUser = wp_get_current_user();
 
-            if ($currentUser->exists()) { // is user logged in
+            if ($currentUser->exists() && !$orderId) {
                 if ($user = get_user_meta(get_current_user_id(), META_DATA_CB_USER, true)) {
                     return $user;
                 }
