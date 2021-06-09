@@ -42,8 +42,7 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
 
             try {
                 $data = json_decode($callback, true);
-                if (!empty($data['metadata']['wp_order_id'])) {
-                    $order = wc_get_order($data['metadata']['wp_order_id']);
+                if (!empty($data['metadata']['wp_order_id']) && ($order = wc_get_order($data['metadata']['wp_order_id']))) {
                     if ((int)$data['payment']['code'] === RESULT_CODE_SUCCESS && $data['payment']['status'] === STATUS_SUCCESS) {
                         $status = WC_STATUS_COMPLETED;
                         foreach ($order->get_items() as $product) {
@@ -57,6 +56,8 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
                     } else {
                         $order->update_status(WC_STATUS_FAILED, __(sprintf('Payment failed. %s', $data['payment']['description']), 'woocommerce-gateway-centrobill'));
                     }
+
+                    update_user_meta($order->get_customer_id(), META_DATA_CB_USER, $data['consumer']['id']);
                     $order->update_meta_data(META_DATA_CB_USER, $data['consumer']['id']);
                     $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $data['payment']['transactionId']);
                     $order->save_meta_data();
@@ -71,6 +72,8 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
             }
 
             wc_centrobill()->logger->info('[IPN] Response', $result);
+
+            http_response_code(200);
             echo json_encode($result);
             exit;
         }
@@ -82,7 +85,7 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
          */
         private function processXml($callback)
         {
-            $settings = get_option('woocommerce_centrobill_cc_settings', []);
+            $settings = get_option('woocommerce_centrobill_settings', []);
             if (empty($authKey = $settings[SETTING_KEY_AUTH_KEY])) {
                 throw new WC_Centrobill_Exception('Authentication key is missing.');
             }
@@ -124,6 +127,7 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
                         }
                         $result['result'] = RESULT_OK;
 
+                        update_user_meta($order->get_customer_id(), META_DATA_CB_USER, (string)$xml->transaction->customer->ustas);
                         $order->update_meta_data(META_DATA_CB_USER, (string)$xml->transaction->customer->ustas);
                         $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, (string)$xml->transaction->attributes()->id);
                         $order->save_meta_data();

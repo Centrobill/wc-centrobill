@@ -4,8 +4,8 @@ Plugin URI: https://wordpress.org/plugins/wc_centrobill/
 Tags: woocommerce plugin centrobill
 Requires at least: WP 4.9 & WooCommerce 3.0
 Tested up to: 5.7.1 & WooCommerce 5.2.2
-Stable tag: 2.0.2
-Version: 2.0.2
+Stable tag: 2.0.3
+Version: 2.0.3
 License: http://www.gnu.org/licenses/gpl-3.0.html
 
 == Description ==

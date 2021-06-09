@@ -168,7 +168,7 @@ function wc_centrobill_is_subscriptions_plugin_active() {
  * @return bool
  */
 function wc_centrobill_is_subscriptions_enabled() {
-    $settings = get_option('woocommerce_centrobill_cc_settings', []);
+    $settings = get_option('woocommerce_centrobill_settings', []);
 
     return isset($settings[SETTING_KEY_ALLOW_SUBSCRIPTIONS])
         && $settings[SETTING_KEY_ALLOW_SUBSCRIPTIONS] === SETTING_VALUE_YES;

@@ -10,7 +10,7 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
     {
         public function __construct()
         {
-            $this->id = 'centrobill_cc';
+            $this->id = 'centrobill';
             $this->method_title = __('Centrobill Credit Cards', 'woocommerce-gateway-centrobill');
             $this->icon = wc_centrobill_image_url('centrobill_logo.png');
             $this->has_fields = true;
