@@ -1,5 +1,5 @@
 # Centrobill plugin for WooCommerce  
-Version 2.0.3
+Version 2.0.4
 
 ## Description
 CentroBill Payment Gateway plugin for WooCommerce   
@@ -7,7 +7,7 @@ CentroBill Payment Gateway plugin for WooCommerce
 ##  Plugin Installation Instructions  
 
 ### Preparation 
-* Verify that you are running the latest versiog of __Wordpress__ and __Woocommerce__. Plugin requires at least __WP 4.7__  & __WooCommerce 3.0__, and has been tested to work with versions up to: __WP 5.7.1__ & __WooCommerce 5.2.2__.
+* Verify that you are running the latest version of __Wordpress__ and __Woocommerce__. Plugin requires at least __WP 4.7__  & __WooCommerce 3.0__, and has been tested to work with versions up to: __WP 5.7.1__ & __WooCommerce 5.2.2__.
 * Install any pending updates if necessary. 
 * In case __WooCommerce__ plugin is not installed, please install it and update it.
 

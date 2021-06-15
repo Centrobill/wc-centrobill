@@ -1,72 +1,111 @@
-==== CentroBill Payment Gateway Addon ====
-Plugin Name: Centrobill WooCommerce Addon
-Plugin URI: https://wordpress.org/plugins/wc_centrobill/
-Tags: woocommerce plugin centrobill
-Requires at least: WP 4.9 & WooCommerce 3.0
-Tested up to: 5.7.1 & WooCommerce 5.2.2
-Stable tag: 2.0.3
-Version: 2.0.3
-License: http://www.gnu.org/licenses/gpl-3.0.html
+=== CentroBill Payment Gateway for WooCommerce ===
+Contributors: centrobill
+Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sepa
+Requires at least: 4.9.0
+Tested up to: 5.7.1
+Requires PHP: 5.6
+Stable tag: 2.0.4
+License: GPL v3 or later
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
+
+Allows you to use CentroBill payment gateway with the WooCommerce plugin.
 
 == Description ==
-CentroBill Payment Gateway plugin for WooCommerce
+The CentroBill plugin extends WooCommerce and allow you to take payments directly on your store using CentroBill's API.
+Plugin also supports the [WooCommerce Subscriptions extension](https://woocommerce.com/products/woocommerce-subscriptions/).
 
-== Preparation ==
-* Verify that you are running the latest version of WordPress and Woocommerce. Plugin requires at least WP 4.9 & WooCommerce 3.0, and has been tested to work with versions up to: WP 5.7.1 & WooCommerce 5.2.2.
-* Install any pending updates if necessary.
-* In case WooCommerce plugin is not installed, please install it and update it.
+Please go to the site [centrobill.com](https://b2b.centrobill.com) to create a merchant account and start receiving payments.
 
-== Personal Centrobill API Token and Merchant Portal login credentials ==
-* Obtain your personal account's Token from your Centrobill account manager.
-* Obtain Centrobill Merchant Portal login credentials from your Centrobill account manager.
+= Personal CentroBill API Token and Merchant Portal login credentials =
+* Obtain your personal account's **Token** from your CentroBill account manager.
+* Obtain **CentroBill Merchant Portal** login credentials from your CentroBill account manager.
 
-== Install the plugin ==
-* Download plugin repository as a single zip file
-* Log into your WordPress as admin, click on Plugins section in the menu, click Add new.
-* Click Upload Plugin, click Choose File to select the zip file from your computer.
-* Install the plugin and activate it.
-
-== Plugin configuration ==
-* Go to WooCommerce menu -> Settings and click on Payments menu tab.
-* In Payments menu tab click on Centrobill and make sure Enable/Disable option is checked.
-* Locate "Authentication key" input form field on a page and paste your API auth key into it.
-* Locate "Site ID" input form field on a page and paste your site ID into it.
-* If you don't have your Personal Centrobill API Auth Key, please contact your Centrobill account manager.
-* Save Changes.
-
-== Migrate from v1 to v2
-* Install a new plugin (see "Install the plugin" section)
-* Go to WooCommerce -> Settings and click on Payments menu tab.
-* In Payments menu tab click on Centrobill Credit Cards.
-* Locate "Authentication key" input form field on a page with a value (ex. {AuthKey}:{siteId}).
-* Split the value by ":". {AuthKey} leave in the "Authentication key" field and {siteId} move to the "Site ID" input field.
-* Save Changes.
-
-== Setup your account in the Centrobill Merchant Portal ==
-
-= Set up your site =
-* Log in to your Centrobill Merchant Portal using login credentials provided by your Centrobill account manager.
-* Navigate to Sites&Products sections by selecting the tab in the upper menu.
-* Click blue Create Site button.
-* Input the name of your site into the Name of site field.
-* In the Site type choose Woocommerce website
-* Add your website URL to the WordPress URL field. All the following links will be auto-populated (Success URL, Decline URL and IPN URL) and can be changed if you will need it.
+= Setup your account in the CentroBill Merchant Portal =
+* Log in to your **CentroBill Merchant Portal** using login credentials provided by your CentroBill account manager.
+* Navigate to *Sites&Products* sections by selecting the tab in the upper menu.
+* Click blue *Create Site* button.
+* Input the name of your site into the *Name of site* field.
+* In the *Site type* choose *Woocommerce website*.
+* Add your website URL to the *WordPress URL* field. All the following links will be auto-populated (*Success URL, Decline URL* and *IPN URL*) and can be changed if you will need it.
 * Below on this page, in the Colors menu you can also modify style of the payment page if you want it to be styled to your website.
 * Tracking code field is meant for GA pixel or for conversion pixels of other analytical platforms. So, if you want to track sales, you can paste the conversion pixel to this field.
-* After you feel you everything is correct and ready click blue Create site button at the bottom.
+* After you feel you everything is correct and ready click blue *Create site* button at the bottom.
 
-= Set up your products =
-* Navigate to Sites&Products sections by selecting the tab in the upper menu.
-* Click orange Manage products button.
-* To a new product click blue Add new product button.
-* Choose the Currency this product will have.
-* Choose Billing model.
-* Specify the Price.
-* Add the name of the Product your customers will see on the payment page to the Product name field. You can add names in different languages by clicking the green +.
-* Please, mind the price users will see on the page will be in the Currency you have chosen for this Product. If you need a price in different currency, please create a new product.
-* When everything is ready click the blue Add new button.
-In case existing product should be changed, please click Edit button near the product you need to change.
+= Verification =
+* Contact your CentroBill account manager to verify your setup.
+* Please, send the IP address('s) of your server, which will send calls to CentroBill payment feed to your CentroBill account manager.
 
-== Verification ==
-*Contact your Centrobill account manager to verify your setup
-* Please, send the IP address('s) of your server, which will send calls to Centrobill payment feed to your Centrobill account manager.
+== Installation ==
+Verify that you are running the latest version of WordPress and WooCommerce.
+Plugin requires at least WordPress 4.7 & WooCommerce 3.0, and has been tested to work with versions up to: WP 5.7.1 & WooCommerce 5.2.2.
+
+= Automatic installation =
+* Download plugin repository as a single zip file.
+* Log into your WordPress as admin, click on Plugins section in the menu, click **Add new**.
+* Click **Upload Plugin**, click **Choose File** to select the zip file from your computer or just type this plugin's name.
+* Install the plugin and activate it.
+* Navigate to plugin settings and fill settings.
+
+= Manual installation =
+* Unpack and upload the plugin folder to the **/wp-content/plugins/** directory.
+* Activate the plugin through the **Plugins** menu in WordPress.
+* Navigate to plugin settings and configure.
+
+= Updating =
+Automatic updates should work like a charm.
+As always though, ensure you backup your site just in case.
+
+= Plugin configuration =
+To configure the CentroBill Payment Gateway plugin correctly, please follow the steps below:
+
+* Go to *WooCommerce* menu > *Settings* and click on *Payments menu tab*.
+* In *Payments menu tab* click on Centrobill and make sure *Enable/Disable* option is checked.
+* Locate *Authentication key* input form field on a page and paste your API auth key into it.
+* Locate *Site ID* input form field on a page and paste your CentroBill's site ID into it.
+* Save changes.
+
+If you don't have your Personal CentroBill API Auth Key, please contact your CentroBill account manager.
+
+
+== Frequently Asked Questions ==
+= Do I need a merchant account before I can use the CentroBill Payment Gateway plugin? =
+Yes.
+
+= Does this plugin support subscriptions? =
+Yes. This plugin supports recurring payments those created with [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/).
+
+= How to migrate from plugin v1 to v2? =
+* Install a new plugin or update current.
+* Go to *WooCommerce* > *Settings* and click on *Payments menu tab*.
+* In *Payments menu tab* click on *Centrobill Credit Cards*.
+* Locate *Authentication key* input form field on a page with a value (ex. **AuthKey:siteId**).
+* Split the value by ":". **AuthKey** leave in the *Authentication key* field and **siteId** move to the *Site ID* input field.
+* Save changes.
+
+== Screenshots ==
+1. Range of payment methods such as credit cards and alternative payment methods.
+2. The plugin settings screen used to configure the Centrobill payment gateway.
+3. Change the title and description for every payment gateway.
+4. Pay with a credit card.
+5. Pay with an alternative payment method.
+
+== Changelog ==
+= 2.0.4 - 2021-06-15 =
+* Update - readme.txt
+* Add - changelog.txt
+
+= 2.0.3 - 2021-06-09 =
+* Fix - Renaming gateway ID from `centrobill_cc` to `centrobill`
+* Fix - Substring SKU title (max length - 64 chars)
+
+= 2.0.2 - 2021-04-29 =
+* Add - Enable/disable cardholder name field on checkout form
+
+[See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
+
+== Upgrade Notice ==
+= 2.0.4 =
+* Updated readme.txt & changelog.txt
+
+= 1.0.0 =
+* Initial release.
