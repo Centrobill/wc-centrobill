@@ -4,7 +4,7 @@ Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sep
 Requires at least: 4.9.0
 Tested up to: 5.7.1
 Requires PHP: 5.6
-Stable tag: 2.0.4
+Stable tag: 2.0.5
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -82,14 +82,47 @@ Yes. This plugin supports recurring payments those created with [WooCommerce Sub
 * Split the value by ":". **AuthKey** leave in the *Authentication key* field and **siteId** move to the *Site ID* input field.
 * Save changes.
 
+= How to apply VAT for EU users on top of the product price =
+1. **Enabling taxes:**
+Go to your WooCommerce tab WooCommerce > Settings > General.
+Select 'Geolocate' option in Default customer location button. (Screenshot "Tax. General options")
+Select the Enable Taxes and Tax Calculations checkbox.
+
+2. **Configuring Tax Options:**
+WooCommerce > Settings > Tax. This tab is only visible if taxes are enabled.
+Make sure that following options are set as it is described on a screenshot.
+(Select all your options as it described on a screenshot "Tax options")
+
+3. **Importing and exporting EU VAT rates:**
+WooCommerce > Settings > Tax > Standard rates.
+Click on 'Import CSV' button on the bottom right to upload country codes with corresponding VAT rates.
+[Link to CSV file](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/vat_rates.csv)
+
+4. **Configuring Tax for your product.**
+Go to Product > Choose your product > Click Product data
+(Enable Tax status and Tax class as it described on a screenshot "Tax. Product data")
+
+Important! Step 4 should be repeated for every product you want to sell.
+After all this has been setup taxes for EU users would be added on top of the product price and you will receive full product price as a revenue.
+At the same time EU VAT will be calculated correctly and paid accordingly.
+
+Just in case, WooCommerce detailed manual about the tax setup is available by following link: [Setting up Taxes in WooCommerce](https://docs.woocommerce.com/document/setting-up-taxes-in-woocommerce)
+
 == Screenshots ==
 1. Range of payment methods such as credit cards and alternative payment methods.
 2. The plugin settings screen used to configure the Centrobill payment gateway.
 3. Change the title and description for every payment gateway.
 4. Pay with a credit card.
 5. Pay with an alternative payment method.
+6. Tax. General options.
+7. Tax options.
+8. Tax. Product data.
 
 == Changelog ==
+= 2.0.5 - 2021-08-10 =
+* Update - readme.txt - Add a FAQ section "How to apply VAT for EU users on top of the product price"
+* Add - vat_rates.csv
+
 = 2.0.4 - 2021-06-15 =
 * Update - readme.txt
 * Add - changelog.txt
@@ -98,12 +131,12 @@ Yes. This plugin supports recurring payments those created with [WooCommerce Sub
 * Fix - Renaming gateway ID from `centrobill_cc` to `centrobill`
 * Fix - Substring SKU title (max length - 64 chars)
 
-= 2.0.2 - 2021-04-29 =
-* Add - Enable/disable cardholder name field on checkout form
-
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 
 == Upgrade Notice ==
+= 2.0.5 =
+* Updated readme.txt
+
 = 2.0.4 =
 * Updated readme.txt & changelog.txt
 

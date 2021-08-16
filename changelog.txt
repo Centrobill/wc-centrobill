@@ -1,5 +1,9 @@
 *** Changelog ***
 
+= 2.0.5 - 2021-08-10 =
+* Update - readme.txt - Add a FAQ section "How to apply VAT for EU users on top of the product price"
+* Add - vat_rates.csv
+
 = 2.0.4 - 2021-06-15 =
 * Update - readme.txt
 * Add - changelog.txt
