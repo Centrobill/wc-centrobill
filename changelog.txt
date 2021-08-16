@@ -1,5 +1,8 @@
 *** Changelog ***
 
+= 2.0.6 - 2021-08-16 =
+* Add - Update order status before redirecting to the 'Thank You' page
+
 = 2.0.4 - 2021-06-15 =
 * Update - readme.txt
 * Add - changelog.txt
