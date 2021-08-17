@@ -14,6 +14,7 @@ const EPAYMENT_URL = 'https://epayment.centrobill.com/epayment/lib/paypage_api/p
 
 const API_ENDPOINT_PAYMENT = 'payment';
 const API_ENDPOINT_TOKENIZE = 'tokenize';
+const API_ENDPOINT_PAYMENT_PAGE = 'paymentPage';
 
 const METHOD_GET_CREATE_USER = 'get_ustas_or_create';
 const METHOD_GET_PM = 'get';
@@ -61,6 +62,7 @@ const SETTING_KEY_SITE_ID = 'site_id';
 const SETTING_KEY_DEBUG = 'debug';
 const SETTING_KEY_IPN_URL = 'ipn_url';
 const SETTING_KEY_CC_CARDHOLDER = 'show_cardholder_name';
+const SETTING_KEY_USE_PAYMENT_PAGE = 'use_payment_page';
 
 const SETTING_VALUE_YES = 'yes';
 const SETTING_VALUE_NO = 'no';

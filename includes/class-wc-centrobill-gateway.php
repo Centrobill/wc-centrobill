@@ -159,8 +159,10 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
                 echo wpautop(wptexturize($description));
             }
 
-            wp_enqueue_script('centrobill-payment-form');
-            $this->payment_form();
+            if (!wc_centrobill_is_payment_page_enabled()) {
+                wp_enqueue_script('centrobill-payment-form');
+                $this->payment_form();
+            }
         }
 
         /**
@@ -193,8 +195,13 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
                 if (wc_centrobill_is_order_contains_subscription($order) && $order->get_total() == 0) {
                     $order->add_order_note('This subscription has a free trial');
                 }
-                $result = $this->gateway_process_payment($orderId);
-                $this->clear_cached_data($order);
+
+                if (wc_centrobill_is_payment_page_enabled()) {
+                    $result = wc_centrobill()->api->getPaymentPage($orderId);
+                } else {
+                    $result = $this->gateway_process_payment($orderId);
+                    $this->clear_cached_data($order);
+                }
 
                 return [
                     'result' => 'success',
@@ -276,7 +283,12 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         public function payment_scripts()
         {
-            if (!is_checkout() || is_order_received_page() || $this->enabled === SETTING_VALUE_NO) {
+            if (
+                !is_checkout()
+                || is_order_received_page()
+                || wc_centrobill_is_payment_page_enabled()
+                || $this->enabled === SETTING_VALUE_NO
+            ) {
                 return;
             }
 
@@ -299,6 +311,10 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         protected function receive_order_redirect_url(WC_Order $order, $data)
         {
+            if (!empty($data['url'])) {
+                return $data['url'];
+            }
+
             if (
                 !empty($data['payment']['url']) &&
                 (!empty($data['payment']['action']) && $data['payment']['action'] === ACTION_REDIRECT)

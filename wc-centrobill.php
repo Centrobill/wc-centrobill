@@ -3,7 +3,7 @@
  * Plugin Name:     CentroBill Payment Gateway
  * Plugin URI:      https://centrobill.com
  * Description:     Allows you to use CentroBill payment gateway with the WooCommerce plugin
- * Version:         2.0.5
+ * Version:         2.1.0
  * Author:          CentroBill
  * Author URI:      https://centrobill.com/
  * License:         GPL v3 or later
@@ -14,7 +14,7 @@
  */
 defined('ABSPATH') || exit;
 
-define('WC_CENTROBILL_VERSION', '2.0.5');
+define('WC_CENTROBILL_VERSION', '2.1.0');
 define('WC_CENTROBILL_PLUGIN_PATH', untrailingslashit(plugin_dir_path(__FILE__)));
 define('WC_CENTROBILL_PLUGIN_URL', untrailingslashit(plugin_dir_url(__FILE__)));
 define('WC_CENTROBILL_PLUGIN_NAME', basename(dirname(__FILE__)) . '/' . basename(__FILE__));
@@ -132,6 +132,10 @@ if (!class_exists('WC_Centrobill')) {
          */
         public static function updatePaymentGateways($data)
         {
+            if (wc_centrobill_is_payment_page_enabled()) {
+                return;
+            }
+
             $user = wp_get_current_user();
             parse_str($data, $result);
 
@@ -154,6 +158,10 @@ if (!class_exists('WC_Centrobill')) {
          */
         public static function getAvailablePaymentGateways(array $gateways)
         {
+            if (wc_centrobill_is_payment_page_enabled()) {
+                return $gateways;
+            }
+
             $email = WC()->session->get(SESSION_KEY_EMAIL);
             if (false === ($response = get_transient(self::getPMTransientKey($email)))) {
                 try {

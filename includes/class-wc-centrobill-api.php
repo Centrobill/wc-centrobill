@@ -76,6 +76,27 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
+         * @param int|WC_Order $orderId
+         *
+         * @return array
+         * @throws WC_Centrobill_Exception
+         */
+        public function getPaymentPage($orderId)
+        {
+            $response = $this->request(
+                $this->preparePaymentPageRequestParams($orderId),
+                API_ENDPOINT_PAYMENT_PAGE
+            );
+            wc_centrobill()->logger->info('[API] Get payment page', $response);
+
+            if (empty($response['url'])) {
+                throw new WC_Centrobill_Exception('Payment page URL is missing.');
+            }
+
+            return $response;
+        }
+
+        /**
          * @param string $email
          *
          * @return string
@@ -248,7 +269,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'siteId' => $this->getSiteId(),
                     'price' => [
                         [
-                            'offset' => '0d',
+                            'offset' => $hasSubscriptionTrialPeriod ? $this->getOffsetParam($order) : '0d',
                             'amount' => $renewalAmount ?: $amount,
                             'currency' => $order->get_currency(),
                             'repeat' => false,
@@ -261,6 +282,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'redirectUrl' => $order->get_checkout_order_received_url(),
                 ],
                 'metadata' => [
+                    'version' => WC_CENTROBILL_VERSION,
                     'wp_order_id' => $order->get_id(),
                     'trial' => (int)$hasSubscriptionTrialPeriod,
                     'invoice_external_id' => ($subscription instanceof WC_Subscription) ?
@@ -270,14 +292,6 @@ if (!class_exists('WC_Centrobill_Api')) {
 
             if ($renewalAmount) {
                 $request['metadata']['is_vat_included'] = 0;
-            }
-
-            if ($hasSubscriptionTrialPeriod) {
-                $offset = 1;
-                foreach ($order->get_items() as $item) {
-                    $offset = WC_Subscriptions_Product::get_trial_length($item->get_product_id());
-                }
-                $request['sku']['price'][0]['offset'] = sprintf('%ud', $offset);
             }
 
             return $request;
@@ -304,6 +318,68 @@ if (!class_exists('WC_Centrobill_Api')) {
                 $order,
                 $amount
             );
+        }
+
+        /**
+         * @param int|WC_Order $orderId
+         *
+         * @return array
+         * @throws WC_Centrobill_Exception
+         */
+        private function preparePaymentPageRequestParams($orderId)
+        {
+            $order = wc_get_order($orderId);
+            $amount = $order->get_total();
+            $hasSubscriptionTrialPeriod = false;
+
+            if ($subscription = $this->getSubscription($order)) {
+                if ($subscription->get_trial_period() && ($subscription->get_time('trial_end') > time())) {
+                    $hasSubscriptionTrialPeriod = true;
+                    $amount = $subscription->get_total();
+                }
+            }
+
+            return [
+                'sku' => [
+                    'title' => mb_substr(join(', ', $this->getProductNames($order)), 0, 64),
+                    'siteId' => $this->getSiteId(),
+                    'price' => [
+                        [
+                            'offset' => $hasSubscriptionTrialPeriod ? $this->getOffsetParam($order) : '0d',
+                            'amount' => $amount,
+                            'currency' => $order->get_currency(),
+                            'repeat' => false,
+                        ],
+                    ],
+                    'url' => [
+                        'ipnUrl' => wc_centrobill_get_ipn_url($this->settings),
+                        'redirectUrl' => $order->get_checkout_order_received_url(),
+                    ],
+                ],
+                'consumer' => $this->prepareConsumerData($order),
+                'metadata' => [
+                    'version' => WC_CENTROBILL_VERSION,
+                    'wp_order_id' => $order->get_id(),
+                    'trial' => (int)$hasSubscriptionTrialPeriod,
+                    'invoice_external_id' => ($subscription instanceof WC_Subscription) ?
+                        (string)$subscription->get_id() : '',
+                ],
+            ];
+        }
+
+        /**
+         * @param WC_Order $order
+         *
+         * @return string
+         */
+        private function getOffsetParam(WC_Order $order)
+        {
+            $offset = 1;
+            foreach ($order->get_items() as $item) {
+                $offset = WC_Subscriptions_Product::get_trial_length($item->get_product_id());
+            }
+
+            return sprintf('%ud', $offset);
         }
 
         /**
