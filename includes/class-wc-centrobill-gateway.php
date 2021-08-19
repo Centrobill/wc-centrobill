@@ -39,9 +39,6 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
             add_filter('wp_enqueue_scripts', [$this, 'payment_scripts']);
             add_filter('wc_centrobill_settings_nav_tabs', [$this, 'admin_navigation_tabs']);
             add_filter('woocommerce_create_order', [$this, 'remove_awaiting_order']);
-            add_action('woocommerce_before_thankyou', function ($orderId) {
-                wc_get_order($orderId);
-            });
 
             if (wc_centrobill_is_subscriptions_enabled()) {
                 add_action('woocommerce_scheduled_subscription_payment_' . $this->id, [$this, 'process_subscription_payment'], 10, 2);
@@ -299,6 +296,8 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         protected function receive_order_redirect_url(WC_Order $order, $data)
         {
+            $this->update_order_status($order, $data);
+
             if (
                 !empty($data['payment']['url']) &&
                 (!empty($data['payment']['action']) && $data['payment']['action'] === ACTION_REDIRECT)
@@ -307,6 +306,21 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
             }
 
             return $this->get_return_url($order);
+        }
+
+        /**
+         * @param WC_Order $order
+         * @param $data
+         */
+        private function update_order_status(WC_Order $order, $data)
+        {
+            if (
+                (!empty($data['payment']['code']) && $data['payment']['code'] != RESULT_CODE_SUCCESS)
+                || (!empty($data['payment']['status']) && $data['payment']['status'] === STATUS_FAIL)
+            ) {
+                $message = !empty($data['payment']['description']) ? $data['payment']['description'] : '';
+                $order->update_status(WC_STATUS_FAILED, __(sprintf('Payment failed. %s', $message), 'woocommerce-gateway-centrobill'));
+            }
         }
 
         /**
