@@ -122,13 +122,13 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 = 2.1.0 - 2021-08-17 =
 * Add - Redirect to Centrobill payment page instead of using the integrated payment form on the checkout page
 
+= 2.0.6 - 2021-08-16 =
+* Add - Update order status before redirecting to the 'Thank You' page
+* Remove - Hook `woocommerce_before_thankyou`
+
 = 2.0.5 - 2021-08-10 =
 * Update - readme.txt - Add a FAQ section "How to apply VAT for EU users on top of the product price"
 * Add - vat_rates.csv
-
-= 2.0.4 - 2021-06-15 =
-* Update - readme.txt
-* Add - changelog.txt
 
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 
