@@ -4,7 +4,7 @@ Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sep
 Requires at least: 4.9.0
 Tested up to: 5.7.1
 Requires PHP: 5.6
-Stable tag: 2.0.6
+Stable tag: 2.0.7
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -119,6 +119,9 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.0.7 - 2021-08-25 =
+* Fix - Wrong IP address for recurring payments
+
 = 2.0.6 - 2021-08-16 =
 * Add - Update order status before redirecting to the 'Thank You' page
 * Remove - Hook `woocommerce_before_thankyou`
@@ -126,10 +129,6 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 = 2.0.5 - 2021-08-10 =
 * Update - readme.txt - Add a FAQ section "How to apply VAT for EU users on top of the product price"
 * Add - vat_rates.csv
-
-= 2.0.4 - 2021-06-15 =
-* Update - readme.txt
-* Add - changelog.txt
 
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 
