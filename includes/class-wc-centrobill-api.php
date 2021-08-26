@@ -318,7 +318,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 'firstName' => $order->get_billing_first_name(),
                 'lastName' => $order->get_billing_last_name(),
                 'externalId' => $this->getExternalUserId($order->get_billing_email()),
-                'ip' => wc_centrobill_get_ip_address(),
+                'ip' => $order->get_customer_ip_address() ?: wc_centrobill_get_ip_address(),
                 'userAgent' => wc_centrobill_get_useragent(),
                 'browserLanguage' => wc_centrobill_get_browser_language(),
                 'browserAcceptHeader' => wc_centrobill_get_browser_accept_header(),
