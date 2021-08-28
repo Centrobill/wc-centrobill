@@ -1,5 +1,8 @@
 *** Changelog ***
 
+= 2.1.0 - 2021-08-28 =
+* Add - Redirect to Centrobill payment page instead of using the integrated payment form on the checkout page
+
 = 2.0.7 - 2021-08-25 =
 * Fix - Wrong IP address for recurring payments
 

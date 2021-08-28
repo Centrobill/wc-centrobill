@@ -184,6 +184,16 @@ function wc_centrobill_is_order_contains_subscription(WC_Order $order) {
 }
 
 /**
+ * @return bool
+ */
+function wc_centrobill_is_payment_page_enabled() {
+    $settings = get_option('woocommerce_centrobill_settings', []);
+
+    return isset($settings[SETTING_KEY_USE_PAYMENT_PAGE])
+        && $settings[SETTING_KEY_USE_PAYMENT_PAGE] === SETTING_VALUE_YES;
+}
+
+/**
  * @param string $name
  * @param array $args
  */

@@ -48,6 +48,13 @@ return [
         'default' => SETTING_VALUE_YES,
         'description' => __("Show cardholder's name field on the credit card form.", 'woocommerce-gateway-centrobill'),
     ],
+    SETTING_KEY_USE_PAYMENT_PAGE => [
+        'title' => __('Centrobill payment page', 'woocommerce-gateway-centrobill'),
+        'type' => 'checkbox',
+        'label' => __('Enable redirect to Centrobill payment page', 'woocommerce-gateway-centrobill'),
+        'default' => SETTING_VALUE_NO,
+        'description' => __('Redirect to Centrobill payment page instead of using the integrated payment form on the checkout page', 'woocommerce-gateway-centrobill'),
+    ],
     SETTING_KEY_DEBUG => [
         'title' => __('Log debug messages', 'woocommerce-gateway-centrobill'),
         'type' => 'checkbox',
