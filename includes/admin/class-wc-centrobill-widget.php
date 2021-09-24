@@ -101,5 +101,13 @@ if (!class_exists('WC_Centrobill_Admin_Widget')) {
         {
             return include WC_CENTROBILL_PLUGIN_PATH . '/includes/admin/settings-centrobill-bancontact.php';
         }
+
+        /**
+         * @return array
+         */
+        public static function loadCryptoFormFields()
+        {
+            return include WC_CENTROBILL_PLUGIN_PATH . '/includes/admin/settings-centrobill-crypto.php';
+        }
     }
 }

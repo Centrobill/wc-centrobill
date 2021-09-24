@@ -29,6 +29,7 @@ const PAYMENT_TYPE_PRZELEWY24 = 'przelewy24';
 const PAYMENT_TYPE_BANCONTACT = 'bancontact';
 const PAYMENT_TYPE_EPS = 'eps';
 const PAYMENT_TYPE_MYBANK = 'mybank';
+const PAYMENT_TYPE_CRYPTO = 'crypto';
 const PAYMENT_TYPE_CONSUMER = 'consumer';
 
 const MODE_SALE = 'sale';
