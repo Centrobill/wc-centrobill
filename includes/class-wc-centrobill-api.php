@@ -421,7 +421,7 @@ if (!class_exists('WC_Centrobill_Api')) {
             }
 
             if (!empty($javaEnabled = wc_centrobill_retrieve_post_param('centrobill_browser_java_enabled'))) {
-                $data['browserJavaEnabled'] = $javaEnabled;
+                $data['browserJavaEnabled'] = (bool)$javaEnabled;
             }
 
             if (!empty($colorDepth = wc_centrobill_retrieve_post_param('centrobill_browser_color_depth'))) {

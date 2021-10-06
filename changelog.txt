@@ -1,4 +1,6 @@
 *** Changelog ***
+= 2.2.0 - 2021-09-24 =
+* Add - Crypto gateway
 
 = 2.1.0 - 2021-08-28 =
 * Add - Redirect to Centrobill payment page instead of using the integrated payment form on the checkout page
