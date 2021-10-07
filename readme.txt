@@ -119,6 +119,9 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.2.1 - 2021-10-07 =
+* Update - Plugin version
+
 = 2.2.0 - 2021-10-06 =
 * Add - Crypto gateway
 
