@@ -1,4 +1,7 @@
 *** Changelog ***
+= 2.2.1 - 2021-10-07 =
+* Update - Plugin version
+
 = 2.2.0 - 2021-10-06 =
 * Add - Crypto gateway
 
