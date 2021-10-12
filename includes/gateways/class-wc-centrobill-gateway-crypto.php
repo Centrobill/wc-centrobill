@@ -8,7 +8,7 @@ if (!class_exists('WC_Centrobill_Gateway_Crypto')) {
      */
     class WC_Centrobill_Gateway_Crypto extends WC_Centrobill_Gateway_Abstract
     {
-        const MIN_AVAILABLE_AMOUNT_USD = 19.95;
+        const MIN_AVAILABLE_AMOUNT_USD = 37;
 
         public function __construct()
         {

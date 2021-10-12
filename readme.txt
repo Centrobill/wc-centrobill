@@ -119,8 +119,8 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
-= 2.2.2 - 2021-10-11 =
-* Add - Crypto gateway availability (show crypto for one-time products or subscription products with a price limit)
+= 2.2.2 - 2021-10-12 =
+* Update - Crypto gateway availability (show crypto for one-time products or subscription products with a price limit)
 
 = 2.2.1 - 2021-10-07 =
 * Update - Plugin version
