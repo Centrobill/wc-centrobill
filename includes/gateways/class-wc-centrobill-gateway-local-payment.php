@@ -11,14 +11,6 @@ if (!class_exists('WC_Centrobill_Gateway_Local_payment')) {
         /**
          * {@inheritDoc}
          */
-        public function is_available()
-        {
-            return false;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
         public function payment_form()
         {
         }

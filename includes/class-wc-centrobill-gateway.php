@@ -118,10 +118,9 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         public function is_available()
         {
-            if (
-                empty($this->get_option(SETTING_KEY_AUTH_KEY)) &&
-                empty($this->get_option(SETTING_KEY_SITE_ID))
-            ) {
+            $settings = get_option('woocommerce_centrobill_settings', []);
+
+            if (empty($settings[SETTING_KEY_AUTH_KEY]) && empty($settings[SETTING_KEY_SITE_ID])) {
                 return false;
             }
 

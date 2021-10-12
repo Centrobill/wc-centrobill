@@ -64,6 +64,10 @@ const SETTING_KEY_DEBUG = 'debug';
 const SETTING_KEY_IPN_URL = 'ipn_url';
 const SETTING_KEY_CC_CARDHOLDER = 'show_cardholder_name';
 const SETTING_KEY_USE_PAYMENT_PAGE = 'use_payment_page';
+const SETTING_KEY_CRYPTO_AVAILABILITY = 'crypto_availability';
+
+const SETTING_OPTION_CRYPTO_ONETIME = 'crypto_availability_option_onetime_only';
+const SETTING_OPTION_CRYPTO_ALL_WITH_EXCLUDING = 'crypto_availability_option_all_products_with_excluding';
 
 const SETTING_VALUE_YES = 'yes';
 const SETTING_VALUE_NO = 'no';
