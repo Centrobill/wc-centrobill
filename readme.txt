@@ -4,7 +4,7 @@ Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sep
 Requires at least: 4.9.0
 Tested up to: 5.7.1
 Requires PHP: 5.6
-Stable tag: 2.2.2
+Stable tag: 2.2.3
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -14,7 +14,7 @@ Allows you to use CentroBill payment gateway with the WooCommerce plugin.
 The CentroBill plugin extends WooCommerce and allow you to take payments directly on your store using CentroBill's API.
 Plugin also supports the [WooCommerce Subscriptions extension](https://woocommerce.com/products/woocommerce-subscriptions/).
 
-Please go to the site [centrobill.com](https://b2b.centrobill.com) to create a merchant account and start receiving payments.
+Please go to the site [centrobill.com](https://centrobill.com/home#contactus) to create a merchant account and start receiving payments.
 
 = Personal CentroBill API Token and Merchant Portal login credentials =
 * Obtain your personal account's **Token** from your CentroBill account manager.
@@ -119,6 +119,10 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.2.3 - 2021-10-18 =
+* Fix - Displaying available payment methods on the checkout page affects other gateways
+* Fix - Link is now correctly in readme.txt
+
 = 2.2.2 - 2021-10-12 =
 * Update - Crypto gateway availability (show crypto for one-time products or subscription products with a price limit)
 
@@ -127,9 +131,6 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 
 = 2.2.0 - 2021-10-06 =
 * Add - Crypto gateway
-
-= 2.1.0 - 2021-08-28 =
-* Add - Redirect to Centrobill payment page instead of using the integrated payment form on the checkout page
 
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 

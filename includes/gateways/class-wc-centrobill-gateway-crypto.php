@@ -30,7 +30,7 @@ if (!class_exists('WC_Centrobill_Gateway_Crypto')) {
         /**
          * {@inheritDoc}
          */
-        public function is_available()
+        public function is_accessible()
         {
             $option = $this->get_option(SETTING_KEY_CRYPTO_AVAILABILITY);
             $subscriptionAmount = $this->getCartSubscriptionProductsTotal();
@@ -45,7 +45,7 @@ if (!class_exists('WC_Centrobill_Gateway_Crypto')) {
                 }
             }
 
-            return parent::is_available();
+            return parent::is_accessible();
         }
 
         /**

@@ -112,19 +112,29 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
 
         /**
-         * Check if the gateway is available for use
+         * The default check is disabled
          *
          * @return bool
          */
         public function is_available()
         {
+            return false;
+        }
+
+        /**
+         * Check if the gateway is accessible for use
+         *
+         * @return bool
+         */
+        public function is_accessible()
+        {
             $settings = get_option('woocommerce_centrobill_settings', []);
 
-            if (empty($settings[SETTING_KEY_AUTH_KEY]) && empty($settings[SETTING_KEY_SITE_ID])) {
+            if (empty($settings[SETTING_KEY_AUTH_KEY]) || empty($settings[SETTING_KEY_SITE_ID])) {
                 return false;
             }
 
-            return parent::is_available();
+            return $this->enabled === SETTING_VALUE_YES;
         }
 
         /**
