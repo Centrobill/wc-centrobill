@@ -1,4 +1,8 @@
 *** Changelog ***
+= 2.2.3 - 2021-10-18 =
+* Fix - Displaying available payment methods on the checkout page affects other gateways
+* Fix - Link is now correctly in readme.txt
+
 = 2.2.2 - 2021-10-12 =
 * Update - Crypto gateway availability (show crypto for one-time products or subscription products with a price limit)
 

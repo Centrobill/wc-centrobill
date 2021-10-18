@@ -27,8 +27,7 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
         {
             if (
                 $this->enabled === SETTING_VALUE_YES &&
-                empty($this->get_option(SETTING_KEY_AUTH_KEY)) &&
-                empty($this->get_option(SETTING_KEY_SITE_ID))
+                (empty($this->get_option(SETTING_KEY_AUTH_KEY)) || empty($this->get_option(SETTING_KEY_SITE_ID)))
             ) {
                 echo sprintf('<div class="error"><p>%s</p></div>', __('CentroBill is enabled but credentials are not set.', 'woocommerce-gateway-centrobill'));
             }
@@ -40,6 +39,14 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
         public function init_form_fields()
         {
             $this->form_fields = WC_Centrobill_Admin_Widget::loadAdminFormFields();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public function is_available()
+        {
+            return $this->enabled === SETTING_VALUE_YES;
         }
 
         /**
