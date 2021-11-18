@@ -195,7 +195,7 @@ if (!class_exists('WC_Centrobill')) {
          */
         public static function getPMTransientKey($email)
         {
-            return sprintf(SESSION_KEY_PM, md5($email));
+            return sprintf(SESSION_KEY_PM, md5($email . wc_centrobill_get_ip_address()));
         }
 
         private function __clone() {}
