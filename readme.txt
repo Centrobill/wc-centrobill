@@ -4,7 +4,7 @@ Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sep
 Requires at least: 4.9.0
 Tested up to: 5.7.1
 Requires PHP: 5.6
-Stable tag: 2.2.3
+Stable tag: 2.2.4
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -119,6 +119,9 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.2.4 - 2021-12-17 =
+* Fix - Wrong amount type (must be a number)
+
 = 2.2.3 - 2021-10-18 =
 * Fix - Displaying available payment methods on the checkout page affects other gateways
 * Fix - Link is now correctly in readme.txt
@@ -128,9 +131,6 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 
 = 2.2.1 - 2021-10-07 =
 * Update - Plugin version
-
-= 2.2.0 - 2021-10-06 =
-* Add - Crypto gateway
 
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 
