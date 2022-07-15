@@ -119,6 +119,9 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.2.5 - 2022-07-15 =
+* Update - Enable plugin availability for all stores
+
 = 2.2.4 - 2021-12-17 =
 * Fix - Wrong amount type (must be a number)
 
