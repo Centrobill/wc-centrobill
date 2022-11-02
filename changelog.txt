@@ -1,4 +1,10 @@
 *** Changelog ***
+= 2.2.5 - 2022-07-15 =
+* Update - Enable plugin availability for all stores
+
+= 2.2.4 - 2021-12-17 =
+* Fix - Wrong amount type (must be a number)
+
 = 2.2.3 - 2021-10-18 =
 * Fix - Displaying available payment methods on the checkout page affects other gateways
 * Fix - Link is now correctly in readme.txt

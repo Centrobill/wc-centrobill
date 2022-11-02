@@ -3,18 +3,12 @@
 defined('ABSPATH') || exit();
 
 /**
- * Check if the gateway is enabled and available in the user's country
+ * Check if the gateway is available
  *
  * @access public
  * @return bool
  */
 function wc_centrobill_is_valid_for_use() {
-    $currencies = apply_filters('woocommerce_centrobill_supported_currencies', ['RUB', 'USD', 'EUR', 'UAH']);
-
-    if (!in_array(get_woocommerce_currency(), $currencies, true)) {
-        return false;
-    }
-
     return true;
 }
 

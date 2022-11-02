@@ -270,7 +270,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'price' => [
                         [
                             'offset' => $hasSubscriptionTrialPeriod ? $this->getOffsetParam($order) : '0d',
-                            'amount' => $renewalAmount ?: $amount,
+                            'amount' => ($renewalAmount !== null) ? floatval($renewalAmount) : floatval($amount),
                             'currency' => $order->get_currency(),
                             'repeat' => false,
                         ],
@@ -346,7 +346,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'price' => [
                         [
                             'offset' => $hasSubscriptionTrialPeriod ? $this->getOffsetParam($order) : '0d',
-                            'amount' => $amount,
+                            'amount' => floatval($amount),
                             'currency' => $order->get_currency(),
                             'repeat' => false,
                         ],
