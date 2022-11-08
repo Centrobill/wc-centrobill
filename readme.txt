@@ -37,7 +37,7 @@ Please go to the site [centrobill.com](https://centrobill.com/home#contactus) to
 
 == Installation ==
 Verify that you are running the latest version of WordPress and WooCommerce.
-Plugin requires at least WordPress 4.7 & WooCommerce 3.0, and has been tested to work with versions up to: WP 5.7.1 & WooCommerce 5.2.2.
+Plugin requires at least WordPress 5.1 & WooCommerce 3.5, and has been tested to work with versions up to: WP 6.1 & WooCommerce 7.0.1.
 
 = Automatic installation =
 * Download plugin repository as a single zip file.
