@@ -3,6 +3,7 @@
 ![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/centrobill-payment-gateway?style_=flat-square)
 ![WordPress Plugin: Tested WP Version](https://img.shields.io/wordpress/plugin/tested/centrobill-payment-gateway?color=green&logo_=wordpress&style_=flat-square)
 ![License](https://img.shields.io/github/license/Centrobill/wc-centrobill?style_=flat-square&color=green)
+[![Release to WordPress.org](https://github.com/Centrobill/wc-centrobill/actions/workflows/wordpress-release.yml/badge.svg)](https://github.com/Centrobill/wc-centrobill/actions/workflows/wordpress-release.yml)
 
 [Centrobill](https://centrobill.com) Payment Gateway plugin for WooCommerce.
 
