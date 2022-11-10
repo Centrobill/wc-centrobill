@@ -8,9 +8,6 @@
  * Author URI:      https://centrobill.com/
  * License:         GPL v3 or later
  * License URI:     https://www.gnu.org/licenses/gpl-3.0.html
- *
- * Tested up to:    5.7.1
- * WC tested up to: 5.2.2
  */
 defined('ABSPATH') || exit;
 

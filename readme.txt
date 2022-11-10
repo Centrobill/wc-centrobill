@@ -1,10 +1,10 @@
 === CentroBill Payment Gateway for WooCommerce ===
 Contributors: centrobill
 Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sepa
-Requires at least: 4.9.0
-Tested up to: 5.7.1
+Requires at least: 5.1
+Tested up to: 6.1
 Requires PHP: 5.6
-Stable tag: 2.2.5
+Stable tag: 2.2.6
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -37,7 +37,7 @@ Please go to the site [centrobill.com](https://centrobill.com/home#contactus) to
 
 == Installation ==
 Verify that you are running the latest version of WordPress and WooCommerce.
-Plugin requires at least WordPress 4.7 & WooCommerce 3.0, and has been tested to work with versions up to: WP 5.7.1 & WooCommerce 5.2.2.
+Plugin requires at least WordPress 5.1 & WooCommerce 3.5, and has been tested to work with versions up to: WP 6.1 & WooCommerce 7.0.1.
 
 = Automatic installation =
 * Download plugin repository as a single zip file.
@@ -119,6 +119,9 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.2.6 - 2022-11-08 =
+* Add - Clear out plugin options after uninstall from the site (uninstall.php)
+
 = 2.2.5 - 2022-07-15 =
 * Update - Enable plugin availability for all stores
 
@@ -131,9 +134,6 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 
 = 2.2.2 - 2021-10-12 =
 * Update - Crypto gateway availability (show crypto for one-time products or subscription products with a price limit)
-
-= 2.2.1 - 2021-10-07 =
-* Update - Plugin version
 
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 
