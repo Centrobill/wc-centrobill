@@ -1,4 +1,7 @@
 *** Changelog ***
+= 2.2.6 - 2022-11-08 =
+* Add - Clear out plugin options after uninstall from the site (uninstall.php)
+
 = 2.2.5 - 2022-07-15 =
 * Update - Enable plugin availability for all stores
 
