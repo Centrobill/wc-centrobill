@@ -60,7 +60,7 @@ function wc_centrobill_get_ip_address() {
  * @return string
  */
 function wc_centrobill_get_useragent() {
-    return wp_unslash(wc_clean($_SERVER['HTTP_USER_AGENT']));
+    return (string) wp_unslash(wc_clean($_SERVER['HTTP_USER_AGENT']));
 }
 
 /**
@@ -76,7 +76,7 @@ function wc_centrobill_get_browser_language($default = 'en') {
  * @return string
  */
 function wc_centrobill_get_browser_accept_header() {
-    return wp_unslash(wc_clean($_SERVER['HTTP_ACCEPT']));
+    return (string) wp_unslash(wc_clean($_SERVER['HTTP_ACCEPT']));
 }
 
 /**

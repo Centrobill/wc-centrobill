@@ -395,10 +395,16 @@ if (!class_exists('WC_Centrobill_Api')) {
                 'lastName' => $order->get_billing_last_name(),
                 'externalId' => $this->getExternalUserId($order->get_billing_email()),
                 'ip' => $order->get_customer_ip_address() ?: wc_centrobill_get_ip_address(),
-                'userAgent' => wc_centrobill_get_useragent(),
                 'browserLanguage' => wc_centrobill_get_browser_language(),
-                'browserAcceptHeader' => wc_centrobill_get_browser_accept_header(),
             ];
+
+            if (!empty($userAgent = wc_centrobill_get_useragent())) {
+                $data['userAgent'] = $userAgent;
+            }
+
+            if (!empty($browserAcceptHeader = wc_centrobill_get_browser_accept_header())) {
+                $data['browserAcceptHeader'] = $browserAcceptHeader;
+            }
 
             if (!empty($phone = $order->get_billing_phone())) {
                 $data['phone'] = $phone;

@@ -1,4 +1,8 @@
 *** Changelog ***
+= 2.2.7 - 2024-07-05 =
+* Update - `wc_centrobill_get_useragent` and `wc_centrobill_get_browser_accept_header` functions explicitly return strings.
+* Fix - Remove `userAgent` and `browserAcceptHeader` from default consumer data preparation in `WC_Centrobill_Api::prepareConsumerData` and add them conditionally.
+
 = 2.2.6 - 2022-11-08 =
 * Add - Clear out plugin options after uninstall from the site (uninstall.php)
 
