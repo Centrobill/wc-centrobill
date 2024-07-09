@@ -1,6 +1,6 @@
-* text=auto
+# * text=auto
 
-*.php text eol=lf
+# *.php text eol=lf
 
 /.*     export-ignore
 /*.md   export-ignore
