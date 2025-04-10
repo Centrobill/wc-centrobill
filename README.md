@@ -15,7 +15,7 @@
 * WooCommerce >= 3.5
 
 Verify that you are running the latest version of **WordPress** and **WooCommerce**. \
-Plugin requires at least **WP 5.1** & **WooCommerce 3.5**, and has been tested to work with versions up to: **WP 6.1** & **WooCommerce 7.0.1**.
+Plugin requires at least **WP 5.1** & **WooCommerce 3.5**, and has been tested to work with versions up to: **WP 6.7** & **WooCommerce 8.9**.
 
 ### Installation
 
