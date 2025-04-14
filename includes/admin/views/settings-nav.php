@@ -17,10 +17,6 @@ $tabs = apply_filters('wc_centrobill_settings_nav_tabs', []);
     }
 </style>
 
-<div class="wc-centrobill-settings-logo">
-    <img src="<?php echo wc_centrobill_image_url('centrobill_logo.png'); ?>" />
-</div>
-
 <div class="wc-centrobill-settings-nav">
     <?php foreach ($tabs as $id => $tab) : ?>
         <?php if ($_GET['section'] === $id) { $active = 'nav-link-active'; } else { $active = ''; } ?>
