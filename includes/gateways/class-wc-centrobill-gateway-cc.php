@@ -12,7 +12,6 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
         {
             $this->id = 'centrobill';
             $this->method_title = __('Centrobill Credit Cards', 'woocommerce-gateway-centrobill');
-            $this->icon = wc_centrobill_image_url('centrobill_logo.png');
             $this->has_fields = true;
 
             add_action('admin_notices', [$this, 'show_admin_notice']);

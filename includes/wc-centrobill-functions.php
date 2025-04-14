@@ -499,3 +499,18 @@ function wc_centrobill_country_convert_to_iso3($country)
 
     return !empty($countries[$country]) ? $countries[$country] : null;
 }
+
+/**
+ * Build user agent string for API requests.
+ *
+ * @return string
+ */
+function wc_centrobill_build_useragent() {
+    return sprintf('Centrobill WP Plugin/%s (WP/%s; WC/%s; PHP/%s) %s',
+        WC_CENTROBILL_VERSION,
+        get_bloginfo('version'),
+        function_exists('WC') ? WC()->version : '0',
+        phpversion(),
+        get_bloginfo('url')
+    );
+}

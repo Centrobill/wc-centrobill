@@ -2,9 +2,11 @@
 Contributors: centrobill
 Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sepa
 Requires at least: 5.1
-Tested up to: 6.1
+Tested up to: 6.7.2
 Requires PHP: 5.6
-Stable tag: 2.2.7
+WC requires at least: 3.5.0
+WC tested up to: 8.9.3
+Stable tag: 2.2.8
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -119,6 +121,11 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.2.8 - 2025-04-10 =
+* Add - Support for paid trials (sign-up fee)
+* Update - Include available payment methods in the request for generating the payment page URL
+* Update - Use hash for generating external user ID based on site ID and user ID or email
+
 = 2.2.7 - 2024-07-05 =
 * Update - `wc_centrobill_get_useragent` and `wc_centrobill_get_browser_accept_header` functions explicitly return strings.
 * Fix - Remove `userAgent` and `browserAcceptHeader` from default consumer data preparation in `WC_Centrobill_Api::prepareConsumerData` and add them conditionally.
@@ -131,10 +138,6 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 
 = 2.2.4 - 2021-12-17 =
 * Fix - Wrong amount type (must be a number)
-
-= 2.2.3 - 2021-10-18 =
-* Fix - Displaying available payment methods on the checkout page affects other gateways
-* Fix - Link is now correctly in readme.txt
 
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 
