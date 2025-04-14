@@ -174,6 +174,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 ];
             }
             $data['timeout'] = 60;
+            $data['user-agent'] = wc_centrobill_build_useragent();
 
             wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => $data['body']]);
             $response = wp_remote_post($url, $data);
@@ -252,15 +253,7 @@ if (!class_exists('WC_Centrobill_Api')) {
         private function preparePaymentRequestParams(array $paymentSource, $orderId, $renewalAmount = null)
         {
             $order = wc_get_order($orderId);
-            $hasSubscriptionTrialPeriod = false;
-
-            $amount = $order->get_total();
-            if ($subscription = $this->getSubscription($order)) {
-                if ($subscription->get_trial_period() && ($subscription->get_time('trial_end') > time())) {
-                    $hasSubscriptionTrialPeriod = true;
-                    $amount = $subscription->get_total();
-                }
-            }
+            $subscription = $this->getSubscription($order);
 
             $request = [
                 'paymentSource' => $paymentSource,
@@ -269,8 +262,8 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'siteId' => $this->getSiteId(),
                     'price' => [
                         [
-                            'offset' => $hasSubscriptionTrialPeriod ? $this->getOffsetParam($order) : '0d',
-                            'amount' => ($renewalAmount !== null) ? floatval($renewalAmount) : floatval($amount),
+                            'offset' => '0d',
+                            'amount' => (float)($renewalAmount ?: $order->get_total()),
                             'currency' => $order->get_currency(),
                             'repeat' => false,
                         ],
@@ -284,7 +277,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 'metadata' => [
                     'version' => WC_CENTROBILL_VERSION,
                     'wp_order_id' => $order->get_id(),
-                    'trial' => (int)$hasSubscriptionTrialPeriod,
+                    'trial' => (int)$this->hasTrialPeriod($order),
                     'invoice_external_id' => ($subscription instanceof WC_Subscription) ?
                         (string)$subscription->get_id() : '',
                 ],
@@ -329,24 +322,16 @@ if (!class_exists('WC_Centrobill_Api')) {
         private function preparePaymentPageRequestParams($orderId)
         {
             $order = wc_get_order($orderId);
-            $amount = $order->get_total();
-            $hasSubscriptionTrialPeriod = false;
+            $subscription = $this->getSubscription($order);
 
-            if ($subscription = $this->getSubscription($order)) {
-                if ($subscription->get_trial_period() && ($subscription->get_time('trial_end') > time())) {
-                    $hasSubscriptionTrialPeriod = true;
-                    $amount = $subscription->get_total();
-                }
-            }
-
-            return [
+            $request = [
                 'sku' => [
                     'title' => mb_substr(join(', ', $this->getProductNames($order)), 0, 64),
                     'siteId' => $this->getSiteId(),
                     'price' => [
                         [
-                            'offset' => $hasSubscriptionTrialPeriod ? $this->getOffsetParam($order) : '0d',
-                            'amount' => floatval($amount),
+                            'offset' => '0d',
+                            'amount' => (float)$order->get_total(),
                             'currency' => $order->get_currency(),
                             'repeat' => false,
                         ],
@@ -360,26 +345,34 @@ if (!class_exists('WC_Centrobill_Api')) {
                 'metadata' => [
                     'version' => WC_CENTROBILL_VERSION,
                     'wp_order_id' => $order->get_id(),
-                    'trial' => (int)$hasSubscriptionTrialPeriod,
+                    'trial' => (int)$this->hasTrialPeriod($order),
                     'invoice_external_id' => ($subscription instanceof WC_Subscription) ?
                         (string)$subscription->get_id() : '',
                 ],
             ];
+
+            if (!empty($methods = $this->getAvailablePaymentMethods($order->get_billing_email()))) {
+                $request['payment'] = [
+                    'method' => $methods,
+                ];
+            }
+
+            return $request;
         }
 
         /**
-         * @param WC_Order $order
+         * @param string $email
          *
-         * @return string
+         * @return array
+         * @throws WC_Centrobill_Exception
          */
-        private function getOffsetParam(WC_Order $order)
+        private function getAvailablePaymentMethods($email)
         {
-            $offset = 1;
-            foreach ($order->get_items() as $item) {
-                $offset = WC_Subscriptions_Product::get_trial_length($item->get_product_id());
+            if (!empty($methods = get_transient(WC_Centrobill::getPMTransientKey($email)))) {
+                return $methods;
             }
 
-            return sprintf('%ud', $offset);
+            return $this->getPaymentMethods($email);
         }
 
         /**
@@ -491,7 +484,7 @@ if (!class_exists('WC_Centrobill_Api')) {
          */
         private function getExternalUserId($email)
         {
-            return !empty(get_current_user_id()) ? sprintf('wp__%s', get_current_user_id()) : $email;
+            return 'wp_' . md5($this->getSiteId() . (!empty(get_current_user_id()) ? get_current_user_id() : $email));
         }
 
         /**
@@ -502,6 +495,8 @@ if (!class_exists('WC_Centrobill_Api')) {
         private function getProductNames(WC_Order $order)
         {
             $productNames = [];
+
+            /** @var WC_Order_Item_Product $item */
             foreach ($order->get_items() as $item) {
                 $product = $item->get_product();
                 $productNames[] = $product->get_name();
@@ -536,6 +531,18 @@ if (!class_exists('WC_Centrobill_Api')) {
             }
 
             return null;
+        }
+
+        /**
+         * @param WC_Order $order
+         *
+         * @return bool
+         */
+        private function hasTrialPeriod(WC_Order $order)
+        {
+            return (($subscription = $this->getSubscription($order)) instanceof WC_Subscription) &&
+                $subscription->get_trial_period() &&
+                $subscription->get_time('trial_end') > time();
         }
 
         /**
