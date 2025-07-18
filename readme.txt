@@ -6,7 +6,7 @@ Tested up to: 6.7.2
 Requires PHP: 5.6
 WC requires at least: 3.5.0
 WC tested up to: 8.9.3
-Stable tag: 2.2.8
+Stable tag: 2.2.9
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -121,6 +121,10 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.2.9 - 2025-07-18 =
+* Add - New endpoint to retrieve payment methods (get-payment-details)
+* Update - Include billing country and product price in payment method requests to improve payment method retrieval
+
 = 2.2.8 - 2025-04-10 =
 * Add - Support for paid trials (sign-up fee)
 * Update - Include available payment methods in the request for generating the payment page URL
