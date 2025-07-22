@@ -116,21 +116,37 @@ if (!class_exists('WC_Centrobill_Api')) {
 
         /**
          * @param string $email
+         * @param WC_Order|null $order
          *
          * @return array
          * @throws WC_Centrobill_Exception
          */
-        public function getPaymentMethods($email)
+        public function getPaymentMethods($email, $order = null)
         {
-            $response = $this->request([
+            $params = [
                 'method' => METHOD_GET_PM,
                 'ustas' => $this->getConsumer(null, $email),
                 'sku_name' => $this->getTechSku(),
                 'customer_remote_addr' => wc_centrobill_get_ip_address(),
                 'load_cc_mid_info' => true,
-            ]);
+            ];
 
-            wc_centrobill()->logger->info('[API] Payment methods response', $response);
+            if ($order instanceof WC_Order) {
+                $params['method'] = METHOD_GET_PM_DETAILS;
+                $params['sku_data'] = [
+                    'type' => 'one-time',
+                    'cost' => (float)$order->get_total(),
+                    'currency' => $order->get_currency(),
+                ];
+                $params['customer_country_code'] = wc_centrobill_country_convert_to_iso3($order->get_billing_country());
+            }
+
+            $response = $this->request($params);
+
+            wc_centrobill()->logger->info('[API] Payment methods response', [
+                'result' => $response['result'],
+                'payment_methods' => !empty($response['short_payment_methods']) ? array_keys($response['short_payment_methods']) : [],
+            ]);
 
             $result = [];
             if (!empty($response['short_payment_methods'])) {
@@ -351,28 +367,13 @@ if (!class_exists('WC_Centrobill_Api')) {
                 ],
             ];
 
-            if (!empty($methods = $this->getAvailablePaymentMethods($order->get_billing_email()))) {
+            if (!empty($methods = $this->getPaymentMethods($order->get_billing_email(), $order))) {
                 $request['payment'] = [
                     'method' => $methods,
                 ];
             }
 
             return $request;
-        }
-
-        /**
-         * @param string $email
-         *
-         * @return array
-         * @throws WC_Centrobill_Exception
-         */
-        private function getAvailablePaymentMethods($email)
-        {
-            if (!empty($methods = get_transient(WC_Centrobill::getPMTransientKey($email)))) {
-                return $methods;
-            }
-
-            return $this->getPaymentMethods($email);
         }
 
         /**
