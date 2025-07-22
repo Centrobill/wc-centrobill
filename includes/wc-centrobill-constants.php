@@ -18,6 +18,7 @@ const API_ENDPOINT_PAYMENT_PAGE = 'paymentPage';
 
 const METHOD_GET_CREATE_USER = 'get_ustas_or_create';
 const METHOD_GET_PM = 'get';
+const METHOD_GET_PM_DETAILS = 'get-payment-details';
 
 const PAYMENT_TYPE_TOKEN = 'token';
 const PAYMENT_TYPE_SEPA = 'sepa';
