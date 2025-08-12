@@ -55,6 +55,16 @@ return [
         'default' => SETTING_VALUE_NO,
         'description' => __('Redirect to Centrobill payment page instead of using the integrated payment form on the checkout page', 'woocommerce-gateway-centrobill'),
     ],
+    SETTING_KEY_PAYMENT_PAGE_URL => [
+        'title' => __('Payment page base URL', 'woocommerce-gateway-centrobill'),
+        'type' => 'select',
+        'description' => __('Base URL for the Centrobill payment page. Default is https://pay.centrobill.com', 'woocommerce-gateway-centrobill'),
+        'default' => 'https://pay.centrobill.com',
+        'options' => [
+            'https://pay.centrobill.com' => 'https://pay.centrobill.com',
+            'https://checkout.centrobill.com' => 'https://checkout.centrobill.com',
+        ],
+    ],
     SETTING_KEY_DEBUG => [
         'title' => __('Log debug messages', 'woocommerce-gateway-centrobill'),
         'type' => 'checkbox',

@@ -122,11 +122,19 @@ function wc_centrobill_get_ipn_url(array $data = []) {
 }
 
 /**
+ * @param array $data
+ * @return string
+ */
+function wc_centrobill_get_payment_page_url(array $data = []) {
+    return !empty($data[SETTING_KEY_PAYMENT_PAGE_URL]) ?
+        $data[SETTING_KEY_PAYMENT_PAGE_URL] : 'https://pay.centrobill.com';
+}
+
+/**
  * @param array $response
  * @return string
  */
 function wc_centrobill_retrieve_response_text(array $response) {
-
     $message = '';
     if (!empty($response['response_text'])) {
         $message = $response['response_text'];

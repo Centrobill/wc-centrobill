@@ -365,12 +365,13 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'invoice_external_id' => ($subscription instanceof WC_Subscription) ?
                         (string)$subscription->get_id() : '',
                 ],
+                'payment' => [
+                    'domain' => wc_centrobill_get_payment_page_url($this->settings),
+                ],
             ];
 
             if (!empty($methods = $this->getPaymentMethods($order->get_billing_email(), $order))) {
-                $request['payment'] = [
-                    'method' => $methods,
-                ];
+                $request['payment']['method'] = $methods;
             }
 
             return $request;
