@@ -1,4 +1,7 @@
 *** Changelog ***
+= 2.2.10 - 2025-08-11 =
+* Add - Configurable base URL for the payment page (plugin settings)
+
 = 2.2.9 - 2025-07-18 =
 * Add - New endpoint to retrieve payment methods (get-payment-details)
 * Update - Include billing country and product price in payment method requests to improve payment method retrieval
