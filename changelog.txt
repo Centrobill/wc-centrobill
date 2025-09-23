@@ -1,4 +1,7 @@
 *** Changelog ***
+= 2.2.11 - 2025-09-22 =
+* Add - New `address` field in consumer data, combining `billing_address_1` and `billing_address_2`.
+
 = 2.2.10 - 2025-08-11 =
 * Add - Configurable base URL for the payment page (plugin settings)
 

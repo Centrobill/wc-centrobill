@@ -6,7 +6,7 @@ Tested up to: 6.7.2
 Requires PHP: 5.6
 WC requires at least: 3.5.0
 WC tested up to: 8.9.3
-Stable tag: 2.2.10
+Stable tag: 2.2.11
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -121,6 +121,9 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.2.11 - 2025-09-22 =
+* Add - New `address` field in consumer data, combining `billing_address_1` and `billing_address_2`.
+
 = 2.2.10 - 2025-08-11 =
 * Add - Configurable base URL for the payment page (plugin settings)
 
@@ -136,9 +139,6 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 = 2.2.7 - 2024-07-05 =
 * Update - `wc_centrobill_get_useragent` and `wc_centrobill_get_browser_accept_header` functions explicitly return strings.
 * Fix - Remove `userAgent` and `browserAcceptHeader` from default consumer data preparation in `WC_Centrobill_Api::prepareConsumerData` and add them conditionally.
-
-= 2.2.6 - 2022-11-08 =
-* Add - Clear out plugin options after uninstall from the site (uninstall.php)
 
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 
