@@ -417,6 +417,11 @@ if (!class_exists('WC_Centrobill_Api')) {
                 $data['city'] = $city;
             }
 
+            $addresses = array_filter([$order->get_billing_address_1(), $order->get_billing_address_2()]);
+            if (!empty($addresses)) {
+                $data['address'] = implode(', ', $addresses);
+            }
+
             if (!empty($zip = $order->get_billing_postcode())) {
                 $data['zip'] = $zip;
             }
