@@ -76,6 +76,33 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
+         * @param WC_Order $order
+         * @param float $amount
+         * @param array $metadata
+         *
+         * @return array
+         * @throws WC_Centrobill_Exception
+         */
+        public function processMitPayment(WC_Order $order, $amount, array $metadata = [])
+        {
+            $response = $this->request(
+                $this->preparePaymentRequestParams(
+                    [
+                        'type' => PAYMENT_TYPE_CONSUMER,
+                        'value' => $this->getConsumer($order->get_id()),
+                    ],
+                    $order,
+                    $amount,
+                    $metadata
+                ),
+                API_ENDPOINT_PAYMENT
+            );
+            wc_centrobill()->logger->info('[API] MIT payment response', $response);
+
+            return $response;
+        }
+
+        /**
          * @param int|WC_Order $orderId
          *
          * @return array
@@ -261,13 +288,18 @@ if (!class_exists('WC_Centrobill_Api')) {
         /**
          * @param array $paymentSource
          * @param int|WC_Order $orderId
-         * @param float|null $renewalAmount
+         * @param float|null $amount
+         * @param array $metadata Extra metadata merged into the request metadata.
          *
          * @return array
          * @throws WC_Centrobill_Exception
          */
-        private function preparePaymentRequestParams(array $paymentSource, $orderId, $renewalAmount = null)
-        {
+        private function preparePaymentRequestParams(
+            array $paymentSource,
+            $orderId,
+            $amount = null,
+            array $metadata = []
+        ) {
             $order = wc_get_order($orderId);
             $subscription = $this->getSubscription($order);
 
@@ -279,7 +311,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'price' => [
                         [
                             'offset' => '0d',
-                            'amount' => (float)($renewalAmount ?: $order->get_total()),
+                            'amount' => (float)($amount ?: $order->get_total()),
                             'currency' => $order->get_currency(),
                             'repeat' => false,
                         ],
@@ -299,8 +331,12 @@ if (!class_exists('WC_Centrobill_Api')) {
                 ],
             ];
 
-            if ($renewalAmount) {
+            if ($amount) {
                 $request['metadata']['is_vat_included'] = 0;
+            }
+
+            if (!empty($metadata)) {
+                $request['metadata'] = array_merge($request['metadata'], $metadata);
             }
 
             return $request;

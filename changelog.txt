@@ -1,4 +1,8 @@
 *** Changelog ***
+= 2.3.0 - 2026-07-29 =
+* Add - One-click upsell/downsell support for CartFlows Pro offer steps (charges the stored customer via MIT).
+* Update - Debug logs now attach the payload as structured context on each entry instead of appending it to the message text.
+
 = 2.2.11 - 2025-09-22 =
 * Add - New `address` field in consumer data, combining `billing_address_1` and `billing_address_2`.
 

@@ -2,11 +2,11 @@
 Contributors: centrobill
 Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sepa
 Requires at least: 5.1
-Tested up to: 6.7.2
+Tested up to: 7.0.2
 Requires PHP: 5.6
 WC requires at least: 3.5.0
-WC tested up to: 8.9.3
-Stable tag: 2.2.11
+WC tested up to: 10.9.4
+Stable tag: 2.3.0
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -121,6 +121,10 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.3.0 - 2026-07-29 =
+* Add - One-click upsell/downsell support for CartFlows Pro offer steps (charges the stored customer via MIT).
+* Update - Debug logs now attach the payload as structured context on each entry instead of appending it to the message text.
+
 = 2.2.11 - 2025-09-22 =
 * Add - New `address` field in consumer data, combining `billing_address_1` and `billing_address_2`.
 
@@ -135,10 +139,6 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 * Add - Support for paid trials (sign-up fee)
 * Update - Include available payment methods in the request for generating the payment page URL
 * Update - Use hash for generating external user ID based on site ID and user ID or email
-
-= 2.2.7 - 2024-07-05 =
-* Update - `wc_centrobill_get_useragent` and `wc_centrobill_get_browser_accept_header` functions explicitly return strings.
-* Fix - Remove `userAgent` and `browserAcceptHeader` from default consumer data preparation in `WC_Centrobill_Api::prepareConsumerData` and add them conditionally.
 
 [See changelog for all versions](https://raw.githubusercontent.com/Centrobill/wc-centrobill/master/changelog.txt)
 
