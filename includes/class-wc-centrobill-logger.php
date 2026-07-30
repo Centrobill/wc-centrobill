@@ -43,9 +43,8 @@ if (!class_exists('WC_Centrobill_Logger')) {
          * @param string $message
          * @param mixed $context
          * @param string $level possible values (emergency|alert|critical|error|warning|notice|info|debug)
-         * @param bool $prettifyOutput
          */
-        public static function log($message, $context = null, $level = 'info', $prettifyOutput = false)
+        public static function log($message, $context = null, $level = 'info')
         {
             if (!self::$isEnabled) {
                 return;
@@ -55,10 +54,16 @@ if (!class_exists('WC_Centrobill_Logger')) {
                 self::$logger = wc_get_logger();
             }
 
-            self::$logger->log(
-                $level,
-                self::sanitizeAndFormatData($message, $context, $prettifyOutput),
-                ['source' => self::LOG_SOURCE]);
+            $data = self::sanitizeContext($context);
+            if (is_array($data)) {
+                $logContext = array_merge($data, ['source' => self::LOG_SOURCE]);
+            } elseif ($data !== null) {
+                $logContext = ['source' => self::LOG_SOURCE, 'context' => $data];
+            } else {
+                $logContext = ['source' => self::LOG_SOURCE];
+            }
+
+            self::$logger->log($level, (string)$message, $logContext);
         }
 
         /**
@@ -89,33 +94,47 @@ if (!class_exists('WC_Centrobill_Logger')) {
         }
 
         /**
-         * @param string $message
-         * @param mixed $context
-         * @param bool $prettifyOutput
+         * Sanitize a log context value: redact sensitive fields and decode the
+         * request body into structured data. Returns null when there is nothing
+         * to log, otherwise the value ready to hand to WC_Logger as context.
          *
-         * @return string
+         * @param mixed $context
+         *
+         * @return mixed|null
          */
-        private static function sanitizeAndFormatData($message, $context, $prettifyOutput = false)
+        private static function sanitizeContext($context)
         {
+            if ($context === null || $context === '' || $context === []) {
+                return null;
+            }
+
+            if (is_object($context)) {
+                $context = json_decode(json_encode($context), true);
+            }
+
+            if (!is_array($context)) {
+                return $context; // scalar (e.g. an exception message)
+            }
+
             if (isset($context['body']) && is_string($context['body'])) {
-                $context['body'] = json_decode($context['body'], true);
+                $decoded = json_decode($context['body'], true);
+                if (is_array($decoded)) {
+                    $context['body'] = $decoded;
+                }
             }
 
             foreach (self::$excludedParams as $excludedParam) {
-                if (isset($context[$excludedParam])) {
+                if (array_key_exists($excludedParam, $context)) {
                     $context[$excludedParam] = '';
                 }
 
-                if (isset($context['body'][$excludedParam])) {
+                if (isset($context['body']) && is_array($context['body'])
+                    && array_key_exists($excludedParam, $context['body'])) {
                     $context['body'][$excludedParam] = '';
                 }
             }
 
-            if ((is_array($context) || is_object($context)) && !$prettifyOutput) {
-                $context = json_encode($context);
-            }
-
-            return $message . (!empty($context) ? ' | Context: ' . wc_print_r($context, true) : '');
+            return $context;
         }
     }
 }
