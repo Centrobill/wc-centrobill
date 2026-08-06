@@ -530,3 +530,32 @@ function wc_centrobill_build_useragent() {
         get_bloginfo('url')
     );
 }
+
+/**
+ * Extract a POST redirect instruction from a payment response, if present.
+ *
+ * @param mixed $data
+ * @return array|null
+ */
+function wc_centrobill_extract_redirect_form($data) {
+    if (!is_array($data)) {
+        return null;
+    }
+
+    $sources = [$data];
+    if (!empty($data['payment']) && is_array($data['payment'])) {
+        $sources[] = $data['payment'];
+    }
+
+    foreach ($sources as $source) {
+        if (
+            !empty($source['redirectForm']['url'])
+            && !empty($source['redirectForm']['fields'])
+            && is_array($source['redirectForm']['fields'])
+        ) {
+            return $source['redirectForm'];
+        }
+    }
+
+    return null;
+}

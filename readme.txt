@@ -6,7 +6,7 @@ Tested up to: 7.0.2
 Requires PHP: 5.6
 WC requires at least: 3.5.0
 WC tested up to: 10.9.4
-Stable tag: 2.3.0
+Stable tag: 2.4.0
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -121,6 +121,10 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.4.0 - 2026-08-06 =
+* Add - Credit Card (Hosted) payment method that redirects the customer to the provider's hosted payment page (cc_token).
+* Update - Reorganised the Credit Cards settings tab into "Account settings" and "Centrobill payment page" sections, and clarified the enable label.
+
 = 2.3.0 - 2026-07-29 =
 * Add - One-click upsell/downsell support for CartFlows Pro offer steps (charges the stored customer via MIT).
 * Update - Debug logs now attach the payload as structured context on each entry instead of appending it to the message text.

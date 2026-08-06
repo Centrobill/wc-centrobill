@@ -1,4 +1,8 @@
 *** Changelog ***
+= 2.4.0 - 2026-08-06 =
+* Add - Credit Card (Hosted) payment method that redirects the customer to the provider's hosted payment page (cc_token).
+* Update - Reorganised the Credit Cards settings tab into "Account settings" and "Centrobill payment page" sections, and clarified the enable label.
+
 = 2.3.0 - 2026-07-29 =
 * Add - One-click upsell/downsell support for CartFlows Pro offer steps (charges the stored customer via MIT).
 * Update - Debug logs now attach the payload as structured context on each entry instead of appending it to the message text.

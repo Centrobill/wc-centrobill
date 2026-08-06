@@ -32,6 +32,7 @@ const PAYMENT_TYPE_EPS = 'eps';
 const PAYMENT_TYPE_MYBANK = 'mybank';
 const PAYMENT_TYPE_CRYPTO = 'crypto';
 const PAYMENT_TYPE_CONSUMER = 'consumer';
+const PAYMENT_TYPE_CC_TOKEN = 'cc_token';
 
 const MODE_SALE = 'sale';
 const MODE_AUTH = 'auth';
@@ -57,6 +58,7 @@ const WC_STATUS_REFUNDED = 'refunded';
 
 const META_DATA_CB_USER = '_cb_ustas';
 const META_DATA_CB_TRANSACTION_ID = '_cb_transaction_id';
+const META_DATA_CB_REDIRECT_FORM = '_cb_redirect_form';
 
 const SETTING_KEY_ALLOW_SUBSCRIPTIONS = 'allow_subscriptions';
 const SETTING_KEY_AUTH_KEY = 'auth_key';
@@ -64,6 +66,7 @@ const SETTING_KEY_SITE_ID = 'site_id';
 const SETTING_KEY_DEBUG = 'debug';
 const SETTING_KEY_IPN_URL = 'ipn_url';
 const SETTING_KEY_CC_CARDHOLDER = 'show_cardholder_name';
+const SETTING_KEY_SHOW_ICON = 'show_icon';
 const SETTING_KEY_USE_PAYMENT_PAGE = 'use_payment_page';
 const SETTING_KEY_PAYMENT_PAGE_URL = 'payment_page_url';
 const SETTING_KEY_CRYPTO_AVAILABILITY = 'crypto_availability';

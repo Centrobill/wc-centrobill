@@ -109,5 +109,13 @@ if (!class_exists('WC_Centrobill_Admin_Widget')) {
         {
             return include WC_CENTROBILL_PLUGIN_PATH . '/includes/admin/settings-centrobill-crypto.php';
         }
+
+        /**
+         * @return array
+         */
+        public static function loadCcTokenFormFields()
+        {
+            return include WC_CENTROBILL_PLUGIN_PATH . '/includes/admin/settings-centrobill-cc_token.php';
+        }
     }
 }

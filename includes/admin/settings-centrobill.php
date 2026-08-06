@@ -6,7 +6,8 @@ return [
     'enabled' => [
         'title' => __('Enable/Disable', 'woocommerce-gateway-centrobill'),
         'type' => 'checkbox',
-        'label' => __('Enable CentroBill payment gateway', 'woocommerce-gateway-centrobill'),
+        'label' => __('Enable CentroBill Credit Cards', 'woocommerce-gateway-centrobill'),
+        'description' => __('Toggles the credit card payment method only. It does not disable the other CentroBill payment methods or the shared account settings on this tab.', 'woocommerce-gateway-centrobill'),
         'default' => SETTING_VALUE_YES,
     ],
     'title' => [
@@ -21,6 +22,18 @@ return [
         'type' => 'textarea',
         'description' => __('This controls the description which the user sees during checkout.', 'woocommerce-gateway-centrobill'),
         'default' => __('Pay with your credit card via CentroBill', 'woocommerce-gateway-centrobill'),
+    ],
+    SETTING_KEY_CC_CARDHOLDER => [
+        'title' => __('Cardholder name', 'woocommerce-gateway-centrobill'),
+        'type' => 'checkbox',
+        'label' => __("Enable cardholder's name", 'woocommerce-gateway-centrobill'),
+        'default' => SETTING_VALUE_YES,
+        'description' => __("Show cardholder's name field on the credit card form.", 'woocommerce-gateway-centrobill'),
+    ],
+    'account_settings' => [
+        'title' => __('Account settings', 'woocommerce-gateway-centrobill'),
+        'type' => 'title',
+        'description' => __('Shared account settings used by all CentroBill payment methods.', 'woocommerce-gateway-centrobill'),
     ],
     SETTING_KEY_AUTH_KEY => [
         'title' => __('Authentication key', 'woocommerce-gateway-centrobill'),
@@ -41,15 +54,19 @@ return [
         'default' => wc_centrobill_get_ipn_url(),
         'custom_attributes' => ['readonly' => 'readonly'],
     ],
-    SETTING_KEY_CC_CARDHOLDER => [
-        'title' => __('Cardholder name', 'woocommerce-gateway-centrobill'),
+    SETTING_KEY_DEBUG => [
+        'title' => __('Log debug messages', 'woocommerce-gateway-centrobill'),
         'type' => 'checkbox',
-        'label' => __("Enable cardholder's name", 'woocommerce-gateway-centrobill'),
-        'default' => SETTING_VALUE_YES,
-        'description' => __("Show cardholder's name field on the credit card form.", 'woocommerce-gateway-centrobill'),
+        'label' => __('Enable logging', 'woocommerce-gateway-centrobill'),
+        'default' => SETTING_VALUE_NO,
+        'description' => __('Log Centrobill events, such as IPN requests, responses, etc. <br>Note: using this for debugging purposes only and deleting the logs when finished.', 'woocommerce-gateway-centrobill'),
+    ],
+    'payment_page_settings' => [
+        'title' => __('Centrobill payment page', 'woocommerce-gateway-centrobill'),
+        'type' => 'title',
     ],
     SETTING_KEY_USE_PAYMENT_PAGE => [
-        'title' => __('Centrobill payment page', 'woocommerce-gateway-centrobill'),
+        'title' => __('Enable/Disable', 'woocommerce-gateway-centrobill'),
         'type' => 'checkbox',
         'label' => __('Enable redirect to Centrobill payment page', 'woocommerce-gateway-centrobill'),
         'default' => SETTING_VALUE_NO,
@@ -64,13 +81,6 @@ return [
             'https://pay.centrobill.com' => 'https://pay.centrobill.com',
             'https://checkout.centrobill.com' => 'https://checkout.centrobill.com',
         ],
-    ],
-    SETTING_KEY_DEBUG => [
-        'title' => __('Log debug messages', 'woocommerce-gateway-centrobill'),
-        'type' => 'checkbox',
-        'label' => __('Enable logging', 'woocommerce-gateway-centrobill'),
-        'default' => SETTING_VALUE_NO,
-        'description' => __('Log Centrobill events, such as IPN requests, responses, etc. <br>Note: using this for debugging purposes only and deleting the logs when finished.', 'woocommerce-gateway-centrobill'),
     ],
     'subscription_settings' => [
         'type' => 'title',
