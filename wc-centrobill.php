@@ -3,7 +3,7 @@
  * Plugin Name:     CentroBill Payment Gateway
  * Plugin URI:      https://centrobill.com
  * Description:     Allows you to use CentroBill payment gateway with the WooCommerce plugin
- * Version:         2.3.0
+ * Version:         2.4.0
  * Author:          CentroBill
  * Author URI:      https://centrobill.com/
  * License:         GPL v3 or later
@@ -11,7 +11,7 @@
  */
 defined('ABSPATH') || exit;
 
-define('WC_CENTROBILL_VERSION', '2.3.0');
+define('WC_CENTROBILL_VERSION', '2.4.0');
 define('WC_CENTROBILL_PLUGIN_PATH', untrailingslashit(plugin_dir_path(__FILE__)));
 define('WC_CENTROBILL_PLUGIN_URL', untrailingslashit(plugin_dir_url(__FILE__)));
 define('WC_CENTROBILL_PLUGIN_NAME', basename(dirname(__FILE__)) . '/' . basename(__FILE__));
@@ -73,6 +73,7 @@ if (!class_exists('WC_Centrobill')) {
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/class-wc-centrobill-gateway.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-cc.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-local-payment.php',
+                WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-cc_token.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-onlinebanking.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-sepa.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-ideal.php',
@@ -118,6 +119,7 @@ if (!class_exists('WC_Centrobill')) {
         public function addGateways($methods)
         {
             $methods[] = WC_Centrobill_Gateway_CC::class;
+            $methods[] = WC_Centrobill_Gateway_CC_Token::class;
             $methods[] = WC_Centrobill_Gateway_Sepa::class;
             $methods[] = WC_Centrobill_Gateway_Giropay::class;
             $methods[] = WC_Centrobill_Gateway_Ideal::class;

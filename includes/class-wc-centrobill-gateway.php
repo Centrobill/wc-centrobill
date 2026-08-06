@@ -176,6 +176,22 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
          */
         public function receipt_page($orderId)
         {
+            $order = wc_get_order($orderId);
+
+            if ($order instanceof WC_Order && ($redirectForm = $order->get_meta(META_DATA_CB_REDIRECT_FORM))) {
+                $order->delete_meta_data(META_DATA_CB_REDIRECT_FORM);
+                $order->save();
+
+                wc_centrobill_get_template('centrobill-redirect-form.php', [
+                    'method' => !empty($redirectForm['method']) ? $redirectForm['method'] : 'POST',
+                    'url' => $redirectForm['url'],
+                    'fields' => !empty($redirectForm['fields']) && is_array($redirectForm['fields'])
+                        ? $redirectForm['fields'] : [],
+                ]);
+
+                return;
+            }
+
             wp_enqueue_script('centrobill-payment-form');
             $this->payment_form();
         }
@@ -318,6 +334,13 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         protected function receive_order_redirect_url(WC_Order $order, $data)
         {
             $this->update_order_status($order, $data);
+
+            if ($redirectForm = wc_centrobill_extract_redirect_form($data)) {
+                $order->update_meta_data(META_DATA_CB_REDIRECT_FORM, $redirectForm);
+                $order->save();
+
+                return $order->get_checkout_payment_url(true);
+            }
 
             if (!empty($data['url'])) {
                 return $data['url'];
