@@ -230,10 +230,19 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
                     'redirect' => $this->receive_order_redirect_url($order, $result),
                 ];
             } catch (Exception $e) {
-                wc_add_notice(
-                    sprintf(esc_html__('%s payment failed. Payment gateway error.', 'woocommerce-gateway-centrobill'), $this->get_method_title()),
-                    'error'
-                );
+                if ($e instanceof WC_Centrobill_Validation_Exception && $e->getValidationMessages()) {
+                    $notice = wc_centrobill_format_validation_notice(
+                        $this->get_method_title(),
+                        $e->getValidationMessages()
+                    );
+                } else {
+                    $notice = sprintf(
+                        esc_html__('%s payment failed. Payment gateway error.', 'woocommerce-gateway-centrobill'),
+                        esc_html($this->get_method_title())
+                    );
+                }
+
+                wc_add_notice($notice, 'error');
 
                 $note = sprintf(esc_html__('%s payment failed. %s', 'woocommerce-gateway-centrobill'), $this->get_method_title(), $e->getMessage());
                 wc_centrobill()->logger->error($note);

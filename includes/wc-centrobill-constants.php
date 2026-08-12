@@ -4,6 +4,7 @@ defined('ABSPATH') || exit();
 
 const HTTP_STATUS_OK = 200;
 const HTTP_STATUS_CREATED = 201;
+const HTTP_STATUS_BAD_REQUEST = 400;
 
 const RESULT_CODE_SUCCESS = 0;
 const RESULT_OK = 'OK';
