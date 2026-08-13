@@ -148,6 +148,76 @@ function wc_centrobill_retrieve_response_text(array $response) {
 }
 
 /**
+ * Build customer-friendly messages from a gateway validation error (HTTP 400) response.
+ *
+ * @param array $response
+ * @return string[] One message per invalid field.
+ */
+function wc_centrobill_get_validation_messages(array $response) {
+    if (empty($response['errors']) || !is_array($response['errors'])) {
+        return [];
+    }
+
+    $labels = [
+        'email' => __('Email address', 'woocommerce-gateway-centrobill'),
+        'firstName' => __('First name', 'woocommerce-gateway-centrobill'),
+        'lastName' => __('Last name', 'woocommerce-gateway-centrobill'),
+        'number' => __('Card number', 'woocommerce-gateway-centrobill'),
+        'cardHolder' => __('Cardholder name', 'woocommerce-gateway-centrobill'),
+        'cvv' => __('Card security code', 'woocommerce-gateway-centrobill'),
+        'expirationMonth' => __('Card expiration month', 'woocommerce-gateway-centrobill'),
+        'expirationYear' => __('Card expiration year', 'woocommerce-gateway-centrobill'),
+        'zip' => __('Postal code', 'woocommerce-gateway-centrobill'),
+        'country' => __('Country', 'woocommerce-gateway-centrobill'),
+        'state' => __('State', 'woocommerce-gateway-centrobill'),
+        'city' => __('City', 'woocommerce-gateway-centrobill'),
+        'address' => __('Address', 'woocommerce-gateway-centrobill'),
+        'phone' => __('Phone number', 'woocommerce-gateway-centrobill'),
+    ];
+
+    $messages = [];
+    foreach (array_keys($response['errors']) as $field) {
+        $segment = (($pos = strrpos($field, '.')) !== false) ? substr($field, $pos + 1) : $field;
+
+        if (isset($labels[$segment])) {
+            $label = $labels[$segment];
+        } else {
+            $label = ucfirst(strtolower(trim(preg_replace('/(?<!^)[A-Z]/', ' $0', str_replace('_', ' ', $segment)))));
+        }
+
+        $messages[$label] = sprintf(
+            __('%s is not valid', 'woocommerce-gateway-centrobill'),
+            $label
+        );
+    }
+
+    return array_values($messages);
+}
+
+/**
+ * Render an HTML checkout notice for a failed payment with validation messages.
+ *
+ * @param string $title Payment method title.
+ * @param string[] $messages Customer-friendly validation messages.
+ * @return string
+ */
+function wc_centrobill_format_validation_notice($title, array $messages) {
+    $heading = '<strong>' . sprintf(
+        esc_html__('%s payment failed:', 'woocommerce-gateway-centrobill'),
+        esc_html($title)
+    ) . '</strong>';
+
+    $messages = array_values(array_filter($messages));
+
+    $items = '';
+    foreach ($messages as $message) {
+        $items .= '<li>' . esc_html($message) . '</li>';
+    }
+
+    return $heading . '<ul>' . $items . '</ul>';
+}
+
+/**
  * @param array $response
  * @return bool
  */

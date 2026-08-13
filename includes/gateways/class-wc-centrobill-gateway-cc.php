@@ -110,7 +110,7 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
             } catch (WC_Centrobill_Exception $e) {
                 wc_centrobill()->logger->error(__METHOD__, $e->getMessage());
 
-                throw new $e;
+                throw $e;
             }
 
             if (empty($response['token'])) {

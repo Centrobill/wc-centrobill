@@ -244,10 +244,18 @@ if (!class_exists('WC_Centrobill_Api')) {
             if (!empty($endpoint) && !in_array($code, [HTTP_STATUS_OK, HTTP_STATUS_CREATED], true)) {
                 wc_centrobill()->logger->error('[API] Payment gateway error', [
                     'response_code' => $code,
-                    'message' => $response['message'],
-                    'errors' => $response['errors'],
+                    'message' => isset($response['message']) ? $response['message'] : '',
+                    'errors' => isset($response['errors']) ? $response['errors'] : [],
                 ]);
-                throw new WC_Centrobill_Exception(sprintf('Payment gateway error. %s', $response['message']));
+                if ($code === HTTP_STATUS_BAD_REQUEST && !empty($response['errors']) && is_array($response['errors'])) {
+                    $messages = wc_centrobill_get_validation_messages($response);
+                    throw new WC_Centrobill_Validation_Exception(implode('. ', $messages), $messages);
+                }
+
+                throw new WC_Centrobill_Exception(sprintf(
+                    'Payment gateway error. %s',
+                    isset($response['message']) ? $response['message'] : ''
+                ));
             }
 
             return $response;
