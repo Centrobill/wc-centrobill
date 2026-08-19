@@ -17,6 +17,8 @@ if (!class_exists('WC_Centrobill_Gateway_CC')) {
             add_action('admin_notices', [$this, 'show_admin_notice']);
 
             parent::__construct();
+
+            $this->supports[] = 'refunds';
         }
 
         /**

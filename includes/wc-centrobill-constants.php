@@ -39,10 +39,13 @@ const MODE_SALE = 'sale';
 const MODE_AUTH = 'auth';
 const MODE_TEST = 'test';
 const MODE_REFUND = 'refund';
+const MODE_PARTIAL_REFUND = 'partial_refund';
 const MODE_VOID = 'void';
 
 const STATUS_SUCCESS = 'success';
+const STATUS_CONFIRMED = 'confirmed';
 const STATUS_FAIL = 'fail';
+
 const STATUS_SHIPPED = 'shipped';
 const STATUS_SUCCESSFUL = 'successful';
 const STATUS_DECLINED = 'declined';
@@ -51,6 +54,7 @@ const STATUS_REFUNDED = 'refunded';
 
 const ACTION_CHARGE = 'charge';
 const ACTION_REDIRECT = 'redirect';
+const ACTION_CREDIT = 'credit';
 
 const WC_STATUS_COMPLETED = 'completed';
 const WC_STATUS_PROCESSING = 'processing';

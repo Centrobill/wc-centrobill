@@ -15,6 +15,8 @@ if (!class_exists('WC_Centrobill_Gateway_CC_Token')) {
 
             parent::__construct();
 
+            $this->supports[] = 'refunds';
+
             if ($this->get_option(SETTING_KEY_SHOW_ICON, SETTING_VALUE_YES) === SETTING_VALUE_YES) {
                 $this->icon = wc_centrobill_image_url('cc.png');
             }

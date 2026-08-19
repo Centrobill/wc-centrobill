@@ -43,24 +43,31 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
             try {
                 $data = json_decode($callback, true);
                 if (!empty($data['metadata']['wp_order_id']) && ($order = wc_get_order($data['metadata']['wp_order_id']))) {
-                    if ((int)$data['payment']['code'] === RESULT_CODE_SUCCESS && $data['payment']['status'] === STATUS_SUCCESS) {
-                        $status = WC_STATUS_COMPLETED;
-                        foreach ($order->get_items() as $product) {
-                            if (!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {
-                                $status = WC_STATUS_PROCESSING;
-                                break;
-                            }
-                        }
-                        $order->update_status($status);
-                        wc_empty_cart();
+                    if ($this->isRefundCallback($data)) {
+                        $this->processRefundCallback($order, $data);
                     } else {
-                        $order->update_status(WC_STATUS_FAILED, __(sprintf('Payment failed. %s', $data['payment']['description']), 'woocommerce-gateway-centrobill'));
-                    }
+                        if ((int)$data['payment']['code'] === RESULT_CODE_SUCCESS && $data['payment']['status'] === STATUS_SUCCESS) {
+                            $status = WC_STATUS_COMPLETED;
+                            foreach ($order->get_items() as $product) {
+                                if (!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {
+                                    $status = WC_STATUS_PROCESSING;
+                                    break;
+                                }
+                            }
+                            $order->update_status($status);
+                            wc_empty_cart();
+                        } else {
+                            $order->update_status(WC_STATUS_FAILED, __(sprintf('Payment failed. %s', $data['payment']['description']), 'woocommerce-gateway-centrobill'));
+                        }
 
-                    update_user_meta($order->get_customer_id(), META_DATA_CB_USER, $data['consumer']['id']);
-                    $order->update_meta_data(META_DATA_CB_USER, $data['consumer']['id']);
-                    $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $data['payment']['transactionId']);
-                    $order->save_meta_data();
+                        update_user_meta($order->get_customer_id(), META_DATA_CB_USER, $data['consumer']['id']);
+                        $order->update_meta_data(META_DATA_CB_USER, $data['consumer']['id']);
+                        $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $data['payment']['transactionId']);
+                        if (!empty($data['payment']['transactionId'])) {
+                            $order->set_transaction_id($data['payment']['transactionId']);
+                        }
+                        $order->save();
+                    }
 
                     $result['result'] = RESULT_OK;
                     $result['order_details'] = $order->get_data();
@@ -109,16 +116,20 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
                     if ($_REQUEST['sign'] === $this->generateSign($cbOrderId, $mode, $status, $authKey)) {
                         $result['order_details'] = $order->get_data();
                         if ($this->isPaymentSuccessful($status, $mode)) {
-                            $status = WC_STATUS_COMPLETED;
+                            $wcStatus = WC_STATUS_COMPLETED;
                             foreach ($order->get_items() as $product) {
                                 if (!$product->get_product()->is_downloadable() && !$product->get_product()->is_virtual()) {
-                                    $status = WC_STATUS_PROCESSING;
+                                    $wcStatus = WC_STATUS_PROCESSING;
                                     break;
                                 }
                             }
-                            $order->update_status($status);
+                            $order->update_status($wcStatus);
                         } elseif ($this->isRefundSuccessful($status, $mode)) {
-                            $order->update_status(WC_STATUS_REFUNDED);
+                            if ($mode === MODE_PARTIAL_REFUND) {
+                                $order->add_order_note(__('CentroBill partial refund processed.', 'woocommerce-gateway-centrobill'));
+                            } else {
+                                $order->update_status(WC_STATUS_REFUNDED);
+                            }
                         } elseif ($this->isPaymentFailed($status, $mode)) {
                             $response_text = (string)$xml->transaction->responseText;
                             $order->update_status(WC_STATUS_FAILED, __(sprintf('Payment failed. %s', $response_text), 'woocommerce-gateway-centrobill'));
@@ -127,10 +138,14 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
                         }
                         $result['result'] = RESULT_OK;
 
+                        $transactionId = (string)$xml->transaction->attributes()->id;
                         update_user_meta($order->get_customer_id(), META_DATA_CB_USER, (string)$xml->transaction->customer->ustas);
                         $order->update_meta_data(META_DATA_CB_USER, (string)$xml->transaction->customer->ustas);
-                        $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, (string)$xml->transaction->attributes()->id);
-                        $order->save_meta_data();
+                        if ($transactionId !== '' && !$this->isRefundOrVoid($mode)) {
+                            $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $transactionId);
+                            $order->set_transaction_id($transactionId);
+                        }
+                        $order->save();
                     } else {
                         $result['error'] = IPN_ERROR_INVALID_SIGNATURE;
                     }
@@ -166,7 +181,56 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
         private function isRefundSuccessful($status, $mode)
         {
             return in_array($status, [STATUS_REFUNDED, STATUS_SUCCESSFUL], true) &&
-                in_array($mode, [MODE_REFUND, MODE_VOID], true);
+                $this->isRefundOrVoid($mode);
+        }
+
+        /**
+         * @param string $mode
+         *
+         * @return bool
+         */
+        private function isRefundOrVoid($mode)
+        {
+            return in_array($mode, [MODE_REFUND, MODE_PARTIAL_REFUND, MODE_VOID], true);
+        }
+
+        /**
+         * @param array $data
+         *
+         * @return bool
+         */
+        private function isRefundCallback(array $data)
+        {
+            return isset($data['payment']['action']) && $data['payment']['action'] === ACTION_CREDIT;
+        }
+
+        /**
+         * @param WC_Order $order
+         * @param array $data
+         *
+         * @return void
+         */
+        private function processRefundCallback(WC_Order $order, array $data)
+        {
+            $isSuccessful = (int)$data['payment']['code'] === RESULT_CODE_SUCCESS
+                && isset($data['payment']['status']) && $data['payment']['status'] === STATUS_SUCCESS;
+
+            if (!$isSuccessful) {
+                $message = !empty($data['payment']['description']) ? $data['payment']['description'] : '';
+                $order->add_order_note(sprintf(
+                    __('CentroBill refund failed. %s', 'woocommerce-gateway-centrobill'),
+                    $message
+                ));
+
+                return;
+            }
+
+            $mode = isset($data['payment']['mode']) ? $data['payment']['mode'] : '';
+            if ($mode === MODE_PARTIAL_REFUND) {
+                $order->add_order_note(__('CentroBill partial refund processed.', 'woocommerce-gateway-centrobill'));
+            } elseif (!$order->has_status(WC_STATUS_REFUNDED)) {
+                $order->update_status(WC_STATUS_REFUNDED);
+            }
         }
 
         /**

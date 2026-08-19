@@ -103,6 +103,37 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
+         * Refund (credit/void) a previously-successful transaction.
+         *
+         * @param string $transactionId Original sale transaction id.
+         * @param float|null $amount
+         * @param string|null $currency
+         * @param string $reason
+         * @param string|null $authorEmail
+         *
+         * @return array
+         * @throws WC_Centrobill_Exception
+         */
+        public function refund($transactionId, $amount, $currency, $reason, $authorEmail = null)
+        {
+            $params = ['reason' => $reason];
+
+            if ($amount !== null) {
+                $params['amount'] = (float)$amount;
+                $params['currency'] = $currency;
+            }
+
+            if (!empty($authorEmail)) {
+                $params['authorEmail'] = $authorEmail;
+            }
+
+            $response = $this->request($params, sprintf('%s/%s/credit', API_ENDPOINT_PAYMENT, $transactionId));
+            wc_centrobill()->logger->info('[API] Refund response', $response);
+
+            return $response;
+        }
+
+        /**
          * @param int|WC_Order $orderId
          *
          * @return array
@@ -249,7 +280,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 ]);
                 if ($code === HTTP_STATUS_BAD_REQUEST && !empty($response['errors']) && is_array($response['errors'])) {
                     $messages = wc_centrobill_get_validation_messages($response);
-                    throw new WC_Centrobill_Validation_Exception(implode('. ', $messages), $messages);
+                    throw new WC_Centrobill_Validation_Exception(implode('. ', $messages), $response['errors'], HTTP_STATUS_BAD_REQUEST);
                 }
 
                 throw new WC_Centrobill_Exception(sprintf(

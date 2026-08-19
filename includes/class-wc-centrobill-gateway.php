@@ -261,6 +261,84 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
 
         /**
+         * Process a refund via the CentroBill credit endpoint.
+         *
+         * @param int $orderId
+         * @param float|null $amount
+         * @param string $reason
+         *
+         * @return bool|WP_Error
+         */
+        public function process_refund($orderId, $amount = null, $reason = '')
+        {
+            $order = wc_get_order($orderId);
+
+            if (!$order instanceof WC_Order) {
+                return new WP_Error('centrobill_refund_error', __('Refund failed. Order not found.', 'woocommerce-gateway-centrobill'));
+            }
+
+            $transactionId = $order->get_meta(META_DATA_CB_TRANSACTION_ID) ?: $order->get_transaction_id();
+            if (empty($transactionId)) {
+                $message = __('CentroBill transaction ID is missing.', 'woocommerce-gateway-centrobill');
+                $order->add_order_note(sprintf(
+                    esc_html__('CentroBill refund failed. %s', 'woocommerce-gateway-centrobill'),
+                    $message
+                ));
+
+                return new WP_Error('centrobill_refund_error', sprintf(
+                    esc_html__('Refund failed. %s', 'woocommerce-gateway-centrobill'),
+                    $message
+                ));
+            }
+
+            try {
+                $response = wc_centrobill()->api->refund(
+                    $transactionId,
+                    $amount,
+                    $order->get_currency(),
+                    wc_centrobill_prepare_refund_reason($reason, $order),
+                    wc_centrobill_get_current_user_email()
+                );
+            } catch (Exception $e) {
+                $message = wc_centrobill_get_gateway_error_message($e);
+                wc_centrobill()->logger->error(__METHOD__, $message);
+                $order->add_order_note(sprintf(
+                    esc_html__('CentroBill refund failed. %s', 'woocommerce-gateway-centrobill'),
+                    $message
+                ));
+
+                return new WP_Error('centrobill_refund_error', sprintf(
+                    esc_html__('Refund failed. %s', 'woocommerce-gateway-centrobill'),
+                    $message
+                ));
+            }
+
+            if (!wc_centrobill_is_refund_successful($response)) {
+                $message = wc_centrobill_retrieve_response_text($response)
+                    ?: __('Payment gateway error.', 'woocommerce-gateway-centrobill');
+                wc_centrobill()->logger->error(__METHOD__, $message);
+                $order->add_order_note(sprintf(
+                    esc_html__('CentroBill refund failed. %s', 'woocommerce-gateway-centrobill'),
+                    $message
+                ));
+
+                return new WP_Error('centrobill_refund_error', sprintf(
+                    esc_html__('Refund failed. %s', 'woocommerce-gateway-centrobill'),
+                    $message
+                ));
+            }
+
+            $order->add_order_note(sprintf(
+                esc_html__('CentroBill refund of %1$s %2$s successful. Refund transaction ID: %3$s', 'woocommerce-gateway-centrobill'),
+                $amount,
+                $order->get_currency(),
+                $response['payment']['transactionId']
+            ));
+
+            return true;
+        }
+
+        /**
          * @param float $amount
          * @param WC_Order $order
          *
@@ -343,6 +421,7 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         protected function receive_order_redirect_url(WC_Order $order, $data)
         {
             $this->update_order_status($order, $data);
+            $this->store_transaction_id($order, $data);
 
             if ($redirectForm = wc_centrobill_extract_redirect_form($data)) {
                 $order->update_meta_data(META_DATA_CB_REDIRECT_FORM, $redirectForm);
@@ -378,6 +457,28 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
                 $message = !empty($data['payment']['description']) ? $data['payment']['description'] : '';
                 $order->update_status(WC_STATUS_FAILED, __(sprintf('Payment failed. %s', $message), 'woocommerce-gateway-centrobill'));
             }
+        }
+
+        /**
+         * Persist the transaction id from a synchronous payment response.
+         *
+         * @param WC_Order $order
+         * @param mixed $data
+         */
+        private function store_transaction_id(WC_Order $order, $data)
+        {
+            if (!is_array($data) || empty($data['payment']['transactionId'])) {
+                return;
+            }
+
+            if (!wc_centrobill_is_payment_successful($data)) {
+                return;
+            }
+
+            $transactionId = $data['payment']['transactionId'];
+            $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $transactionId);
+            $order->set_transaction_id($transactionId);
+            $order->save();
         }
 
         /**

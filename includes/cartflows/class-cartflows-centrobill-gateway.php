@@ -27,11 +27,11 @@ if (!class_exists('Cartflows_Pro_Gateway_Centrobill')) {
         public $key = 'centrobill';
 
         /**
-         * Offer refunds are not supported.
+         * Offer refunds are processed through the CentroBill credit endpoint.
          *
          * @var bool
          */
-        public $is_api_refund = false;
+        public $is_api_refund = true;
 
         /**
          * @return Cartflows_Pro_Gateway_Centrobill
@@ -164,6 +164,66 @@ if (!class_exists('Cartflows_Pro_Gateway_Centrobill')) {
             $note = sprintf('Centrobill offer payment approved. Transaction ID: %s', $response['id']);
             $order->add_order_note($note);
             $this->log($note);
+        }
+
+        /**
+         * Refund a one-click offer transaction through the CentroBill credit endpoint.
+         *
+         * @param WC_Order $order
+         * @param array $offer_data
+         *
+         * @return string|false Refund transaction id on success, false on failure.
+         */
+        public function process_offer_refund($order, $offer_data)
+        {
+            if (!$order instanceof WC_Order) {
+                return false;
+            }
+
+            $transactionId = isset($offer_data['transaction_id']) ? $offer_data['transaction_id'] : '';
+            if (empty($transactionId)) {
+                $this->log('Offer refund failed: transaction id is missing.');
+
+                return false;
+            }
+
+            $amount = isset($offer_data['refund_amount']) ? (float)$offer_data['refund_amount'] : null;
+            $reason = isset($offer_data['refund_reason']) ? $offer_data['refund_reason'] : '';
+
+            try {
+                $response = wc_centrobill()->api->refund(
+                    $transactionId,
+                    $amount,
+                    $order->get_currency(),
+                    wc_centrobill_prepare_refund_reason($reason, $order),
+                    wc_centrobill_get_current_user_email()
+                );
+            } catch (Exception $e) {
+                $note = sprintf('Centrobill offer refund failed. %s', wc_centrobill_get_gateway_error_message($e));
+                $order->add_order_note($note);
+                $this->log($note);
+
+                return false;
+            }
+
+            if (!wc_centrobill_is_refund_successful($response)) {
+                $note = sprintf(
+                    'Centrobill offer refund failed. %s',
+                    wc_centrobill_retrieve_response_text($response)
+                );
+                $order->add_order_note($note);
+                $this->log($note);
+
+                return false;
+            }
+
+            $refundTransactionId = $response['payment']['transactionId'];
+
+            $note = sprintf('Centrobill offer refund approved. Refund transaction ID: %s', $refundTransactionId);
+            $order->add_order_note($note);
+            $this->log($note);
+
+            return $refundTransactionId;
         }
 
         /**
