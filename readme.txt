@@ -6,7 +6,7 @@ Tested up to: 7.0.2
 Requires PHP: 5.6
 WC requires at least: 3.5.0
 WC tested up to: 10.9.4
-Stable tag: 2.4.1
+Stable tag: 2.5.0
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -121,6 +121,10 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
+= 2.5.0 - 2026-08-31 =
+* Add - Refund support for card payments (full and partial).
+* Add - Refund support for CartFlows Pro one-click offer transactions.
+
 = 2.4.1 - 2026-08-11 =
 * Update - Show a clear, field-specific message at checkout when the gateway rejects a payment with validation errors instead of a generic gateway error.
 

@@ -224,7 +224,8 @@ function wc_centrobill_format_validation_notice($title, array $messages) {
 function wc_centrobill_is_payment_successful(array $response) {
     return isset($response['payment']['transactionId']) &&
         isset($response['payment']['code']) && (int)$response['payment']['code'] === 0 &&
-        isset($response['payment']['action']) && $response['payment']['action'] === ACTION_CHARGE;
+        isset($response['payment']['action']) && $response['payment']['action'] === ACTION_CHARGE &&
+        isset($response['payment']['status']) && in_array($response['payment']['status'], [STATUS_SUCCESS, STATUS_CONFIRMED], true);
 }
 
 /**
@@ -233,6 +234,66 @@ function wc_centrobill_is_payment_successful(array $response) {
  */
 function wc_centrobill_is_subscription_payment_successful(array $response) {
     return wc_centrobill_is_payment_successful($response);
+}
+
+/**
+ * @param array $response
+ * @return bool
+ */
+function wc_centrobill_is_refund_successful(array $response) {
+    return isset($response['payment']['transactionId']) &&
+        isset($response['payment']['code']) && (int)$response['payment']['code'] === RESULT_CODE_SUCCESS &&
+        isset($response['payment']['action']) && $response['payment']['action'] === ACTION_CREDIT &&
+        isset($response['payment']['status']) && $response['payment']['status'] === STATUS_SUCCESS;
+}
+
+/**
+ * Human-readable gateway error message from a thrown exception.
+ *
+ * @param Exception $e
+ * @return string
+ */
+function wc_centrobill_get_gateway_error_message(Exception $e) {
+    if ($e instanceof WC_Centrobill_Validation_Exception && $e->getErrors()) {
+        $messages = array_filter(array_map('strval', array_values($e->getErrors())));
+        if (!empty($messages)) {
+            return implode('. ', $messages);
+        }
+    }
+
+    return $e->getMessage();
+}
+
+/**
+ * Build a refund reason accepted by the gateway (required, 3-64 chars).
+ *
+ * @param string $reason
+ * @param WC_Order $order
+ * @return string
+ */
+function wc_centrobill_prepare_refund_reason($reason, WC_Order $order) {
+    $reason = trim((string)$reason);
+
+    if (mb_strlen($reason) < 3) {
+        $reason = sprintf('Refund for order #%s', $order->get_order_number());
+    }
+
+    if (mb_strlen($reason) > 64) {
+        $reason = mb_substr($reason, 0, 64);
+    }
+
+    return $reason;
+}
+
+/**
+ * Email of the currently logged-in user.
+ *
+ * @return string
+ */
+function wc_centrobill_get_current_user_email() {
+    $user = wp_get_current_user();
+
+    return ($user instanceof WP_User && $user->exists()) ? $user->user_email : '';
 }
 
 /**

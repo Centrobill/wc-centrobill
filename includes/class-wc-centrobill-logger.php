@@ -10,6 +10,8 @@ if (!class_exists('WC_Centrobill_Logger')) {
     {
         const LOG_SOURCE = 'wc-centrobill';
 
+        const CONTEXT_IN_FILE_SINCE = '8.6.0';
+
         /**
          * @var bool
          */
@@ -63,7 +65,17 @@ if (!class_exists('WC_Centrobill_Logger')) {
                 $logContext = ['source' => self::LOG_SOURCE];
             }
 
-            self::$logger->log($level, (string)$message, $logContext);
+            $message = (string)$message;
+
+            // WooCommerce (< self::CONTEXT_IN_FILE_SINCE) does not write the context
+            // to the log file, so append it to the message.
+            if ($data !== null && self::shouldInlineContext()) {
+                $message .= ' CONTEXT: ' . (is_scalar($data)
+                    ? (string)$data
+                    : wp_json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            }
+
+            self::$logger->log($level, $message, $logContext);
         }
 
         /**
@@ -91,6 +103,15 @@ if (!class_exists('WC_Centrobill_Logger')) {
         public function error($message, $context = null)
         {
             self::log($message, $context, 'error');
+        }
+
+        /**
+         * @return bool
+         */
+        private static function shouldInlineContext()
+        {
+            return !defined('WC_VERSION')
+                || version_compare(WC_VERSION, self::CONTEXT_IN_FILE_SINCE, '<');
         }
 
         /**
