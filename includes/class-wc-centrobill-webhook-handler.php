@@ -60,7 +60,6 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
                             $order->update_status(WC_STATUS_FAILED, __(sprintf('Payment failed. %s', $data['payment']['description']), 'woocommerce-gateway-centrobill'));
                         }
 
-                        update_user_meta($order->get_customer_id(), META_DATA_CB_USER, $data['consumer']['id']);
                         $order->update_meta_data(META_DATA_CB_USER, $data['consumer']['id']);
                         $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $data['payment']['transactionId']);
                         if (!empty($data['payment']['transactionId'])) {
@@ -139,7 +138,6 @@ if (!class_exists('WC_Centrobill_Webhook_Handler')) {
                         $result['result'] = RESULT_OK;
 
                         $transactionId = (string)$xml->transaction->attributes()->id;
-                        update_user_meta($order->get_customer_id(), META_DATA_CB_USER, (string)$xml->transaction->customer->ustas);
                         $order->update_meta_data(META_DATA_CB_USER, (string)$xml->transaction->customer->ustas);
                         if ($transactionId !== '' && !$this->isRefundOrVoid($mode)) {
                             $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $transactionId);

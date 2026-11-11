@@ -377,15 +377,6 @@ function wc_centrobill_image_url($img) {
 }
 
 /**
- * @param array $keys
- */
-function wc_centrobill_remove_session_keys(array $keys = []) {
-    foreach ($keys as $key) {
-        WC()->session->__unset($key);
-    }
-}
-
-/**
  * @param string $country
  * @return string
  */

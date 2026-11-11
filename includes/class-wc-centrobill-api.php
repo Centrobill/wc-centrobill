@@ -155,100 +155,55 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
-         * @param string $email
+         * Payment methods available for the given purchase context.
          *
-         * @return string
+         * @param array $params
+         *
+         * @return string[]
          * @throws WC_Centrobill_Exception
          */
-        public function createConsumerIfNotExists($email)
+        public function getAvailablePaymentMethods(array $params)
         {
-            $response = $this->request([
-                'method' => METHOD_GET_CREATE_USER,
-                'username' => $email,
-                'external_user_id' => $this->getExternalUserId($email),
-            ]);
-            wc_centrobill()->logger->info('[API] Create consumer response', $response);
+            $params['siteId'] = $this->getSiteId();
 
-            return $response['ustas'];
-        }
+            $params = array_filter($params, function ($value) {
+                return $value !== null && $value !== '';
+            });
 
-        /**
-         * @param string $email
-         * @param WC_Order|null $order
-         *
-         * @return array
-         * @throws WC_Centrobill_Exception
-         */
-        public function getPaymentMethods($email, $order = null)
-        {
-            $params = [
-                'method' => METHOD_GET_PM,
-                'ustas' => $this->getConsumer(null, $email),
-                'sku_name' => $this->getTechSku(),
-                'customer_remote_addr' => wc_centrobill_get_ip_address(),
-                'load_cc_mid_info' => true,
-            ];
-
-            if ($order instanceof WC_Order) {
-                $params['method'] = METHOD_GET_PM_DETAILS;
-                $params['sku_data'] = [
-                    'type' => 'one-time',
-                    'cost' => (float)$order->get_total(),
-                    'currency' => $order->get_currency(),
-                ];
-                $params['customer_country_code'] = wc_centrobill_country_convert_to_iso3($order->get_billing_country());
+            $response = $this->request($params, API_ENDPOINT_PAYMENT_METHODS);
+            $methods = [];
+            if (!empty($response['paymentMethods']) && is_array($response['paymentMethods'])) {
+                $methods = array_values(array_filter($response['paymentMethods'], 'is_string'));
             }
 
-            $response = $this->request($params);
-
-            wc_centrobill()->logger->info('[API] Payment methods response', [
-                'result' => $response['result'],
-                'payment_methods' => !empty($response['short_payment_methods']) ? array_keys($response['short_payment_methods']) : [],
+            wc_centrobill()->logger->info('[API] Available payment methods response', [
+                'payment_methods' => $methods,
             ]);
 
-            $result = [];
-            if (!empty($response['short_payment_methods'])) {
-                $result = array_keys($response['short_payment_methods']);
-            }
-
-            return $result;
+            return $methods;
         }
 
         /**
          * @param array $params
-         * @param null|string $endpoint
+         * @param string $endpoint
          * @param bool $xhr
          *
          * @return array
          * @throws WC_Centrobill_Exception
          */
-        private function request(array $params, $endpoint = null, $xhr = false)
+        private function request(array $params, $endpoint, $xhr = false)
         {
-            if (!is_null($endpoint)) {
-                $url = sprintf('%s/%s', API_URL, untrailingslashit($endpoint));
-                $headers = [
-                    'Authorization' => $this->getAuthKey(),
-                    'Content-Type' => 'application/json',
-                ];
-                $data = [
-                    'headers' => !$xhr ? $headers : array_merge($headers, ['X-Requested-With' => 'XMLHttpRequest']),
-                    'body' => json_encode($params),
-                ];
-            } else {
-                $url = EPAYMENT_URL;
-                $data = [
-                    'headers' => ['Content-Type: application/json'],
-                    'body' => array_merge(
-                        [
-                            'authentication_key' => $this->getAuthKey(),
-                            'fmt' => 'json',
-                        ],
-                        $params
-                    ),
-                ];
-            }
-            $data['timeout'] = 60;
-            $data['user-agent'] = wc_centrobill_build_useragent();
+            $url = sprintf('%s/%s', API_URL, untrailingslashit($endpoint));
+            $headers = [
+                'Authorization' => $this->getAuthKey(),
+                'Content-Type' => 'application/json',
+            ];
+            $data = [
+                'headers' => !$xhr ? $headers : array_merge($headers, ['X-Requested-With' => 'XMLHttpRequest']),
+                'body' => json_encode($params),
+                'timeout' => 60,
+                'user-agent' => wc_centrobill_build_useragent(),
+            ];
 
             wc_centrobill()->logger->info('[API] Request', ['url' => $url, 'body' => $data['body']]);
             $response = wp_remote_post($url, $data);
@@ -266,13 +221,7 @@ if (!class_exists('WC_Centrobill_Api')) {
 
             $response = json_decode($body, true);
 
-            if (empty($endpoint) && !empty($response['result']) && $response['result'] !== 'OK') {
-                throw new WC_Centrobill_Exception(
-                    sprintf('Payment gateway error. %s', wc_centrobill_retrieve_response_text($response))
-                );
-            }
-
-            if (!empty($endpoint) && !in_array($code, [HTTP_STATUS_OK, HTTP_STATUS_CREATED], true)) {
+            if (!in_array($code, [HTTP_STATUS_OK, HTTP_STATUS_CREATED], true)) {
                 wc_centrobill()->logger->error('[API] Payment gateway error', [
                     'response_code' => $code,
                     'message' => isset($response['message']) ? $response['message'] : '',
@@ -415,7 +364,7 @@ if (!class_exists('WC_Centrobill_Api')) {
             $order = wc_get_order($orderId);
             $subscription = $this->getSubscription($order);
 
-            $request = [
+            return [
                 'sku' => [
                     'title' => mb_substr(join(', ', $this->getProductNames($order)), 0, 64),
                     'siteId' => $this->getSiteId(),
@@ -444,18 +393,13 @@ if (!class_exists('WC_Centrobill_Api')) {
                     'domain' => wc_centrobill_get_payment_page_url($this->settings),
                 ],
             ];
-
-            if (!empty($methods = $this->getPaymentMethods($order->get_billing_email(), $order))) {
-                $request['payment']['method'] = $methods;
-            }
-
-            return $request;
         }
 
         /**
          * @param WC_Order $order
          *
          * @return array
+         * @throws WC_Centrobill_Exception
          */
         private function prepareConsumerData(WC_Order $order)
         {
@@ -463,7 +407,7 @@ if (!class_exists('WC_Centrobill_Api')) {
                 'email' => $order->get_billing_email(),
                 'firstName' => $order->get_billing_first_name(),
                 'lastName' => $order->get_billing_last_name(),
-                'externalId' => $this->getExternalUserId($order->get_billing_email()),
+                'externalId' => $this->getExternalUserId($order),
                 'ip' => $order->get_customer_ip_address() ?: wc_centrobill_get_ip_address(),
                 'browserLanguage' => wc_centrobill_get_browser_language(),
             ];
@@ -525,48 +469,75 @@ if (!class_exists('WC_Centrobill_Api')) {
         }
 
         /**
+         * Resolve the consumer of an order for MIT/recurring payments.
+         *
+         * The id is stored on the order from the /payment response or the IPN. For orders
+         * without it the consumer is resolved via the API and cached on the order.
+         *
          * @param int $orderId
-         * @param string|null $email
          *
          * @return string
          * @throws WC_Centrobill_Exception
          */
-        private function getConsumer($orderId, $email = null)
+        private function getConsumer($orderId)
         {
-            $currentUser = wp_get_current_user();
-
-            if ($currentUser->exists() && !$orderId) {
-                if ($user = get_user_meta(get_current_user_id(), META_DATA_CB_USER, true)) {
-                    return $user;
-                }
+            $order = wc_get_order($orderId);
+            if (!$order instanceof WC_Order) {
+                throw new WC_Centrobill_Exception(sprintf('Order #%s not found, cannot resolve the consumer.', $orderId));
             }
 
-            if ($email === null) {
-                $order = wc_get_order($orderId);
-                if ($order && ($user = $order->get_meta(META_DATA_CB_USER))) {
-                    return $user;
-                }
-
-                if ($order instanceof WC_Order) {
-                    $email = $order->get_billing_email();
-                } elseif ($currentUser->exists()) {
-                    $email = $currentUser->user_email;
-                } else {
-                    throw new WC_Centrobill_Exception('Customer email is missing.');
-                }
+            if ($consumerId = $order->get_meta(META_DATA_CB_USER)) {
+                return $consumerId;
             }
 
-            return $this->createConsumerIfNotExists($email);
+            if (!$order->get_billing_email()) {
+                throw new WC_Centrobill_Exception('Customer email is missing.');
+            }
+
+            $consumerId = $this->resolveConsumer($order);
+            $order->update_meta_data(META_DATA_CB_USER, $consumerId);
+            $order->save();
+
+            return $consumerId;
         }
 
         /**
-         * @param string $email
+         * @param WC_Order $order
          *
          * @return string
+         * @throws WC_Centrobill_Exception
          */
-        private function getExternalUserId($email)
+        private function resolveConsumer(WC_Order $order)
         {
-            return 'wp_' . md5($this->getSiteId() . (!empty(get_current_user_id()) ? get_current_user_id() : $email));
+            $params = array_filter([
+                'externalId' => $this->getExternalUserId($order),
+                'email' => $order->get_billing_email(),
+                'firstName' => $order->get_billing_first_name(),
+                'lastName' => $order->get_billing_last_name(),
+                'country' => wc_centrobill_country_convert_to_iso3($order->get_billing_country()),
+            ]);
+
+            $response = $this->request($params, API_ENDPOINT_CONSUMER_RESOLVE);
+            wc_centrobill()->logger->info('[API] Resolve consumer response', $response);
+
+            if (empty($response['id'])) {
+                throw new WC_Centrobill_Exception('Consumer id is missing in the response.');
+            }
+
+            return (string)$response['id'];
+        }
+
+        /**
+         * @param WC_Order $order
+         *
+         * @return string
+         * @throws WC_Centrobill_Exception
+         */
+        private function getExternalUserId(WC_Order $order)
+        {
+            $customerId = $order->get_customer_id();
+
+            return 'wp_' . md5($this->getSiteId() . (!empty($customerId) ? $customerId : $order->get_billing_email()));
         }
 
         /**
@@ -585,15 +556,6 @@ if (!class_exists('WC_Centrobill_Api')) {
             }
 
             return $productNames;
-        }
-
-        /**
-         * @return string
-         * @throws WC_Centrobill_Exception
-         */
-        private function getTechSku()
-        {
-            return 'TECH_' . $this->getSiteId();
         }
 
         /**
@@ -644,7 +606,7 @@ if (!class_exists('WC_Centrobill_Api')) {
          * @return int
          * @throws WC_Centrobill_Exception
          */
-        private function getSiteId()
+        public function getSiteId()
         {
             if (empty($this->settings[SETTING_KEY_SITE_ID])) {
                 throw new WC_Centrobill_Exception('Site ID is missing.');

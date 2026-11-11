@@ -62,9 +62,8 @@ if (!class_exists('Cartflows_Pro_Gateway_Centrobill')) {
                 return true;
             }
 
-            // Fallback for the IPN race (consumer meta not persisted yet):
-            // the order was paid via a Centrobill gateway and we can resolve the consumer
-            // by billing email at charge time.
+            // Fallback for the IPN race (consumer meta not persisted yet): the order was
+            // paid via a Centrobill gateway, and we can resolve the consumer at charge time
             return $this->is_centrobill_order($order) && !empty($order->get_billing_email());
         }
 
