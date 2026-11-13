@@ -3,7 +3,7 @@
  * Plugin Name:     CentroBill Payment Gateway
  * Plugin URI:      https://centrobill.com
  * Description:     Allows you to use CentroBill payment gateway with the WooCommerce plugin
- * Version:         2.5.0
+ * Version:         2.6.0
  * Author:          CentroBill
  * Author URI:      https://centrobill.com/
  * License:         GPL v3 or later
@@ -11,7 +11,7 @@
  */
 defined('ABSPATH') || exit;
 
-define('WC_CENTROBILL_VERSION', '2.5.0');
+define('WC_CENTROBILL_VERSION', '2.6.0');
 define('WC_CENTROBILL_PLUGIN_PATH', untrailingslashit(plugin_dir_path(__FILE__)));
 define('WC_CENTROBILL_PLUGIN_URL', untrailingslashit(plugin_dir_url(__FILE__)));
 define('WC_CENTROBILL_PLUGIN_NAME', basename(dirname(__FILE__)) . '/' . basename(__FILE__));
@@ -22,8 +22,6 @@ if (!class_exists('WC_Centrobill')) {
      */
     class WC_Centrobill
     {
-        const TRANSIENT_PM_TTL = 60 * 10;
-
         /**
          * @var WC_Centrobill $instance
          */
@@ -72,6 +70,7 @@ if (!class_exists('WC_Centrobill')) {
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/class-wc-centrobill-validation-exception.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/class-wc-centrobill-webhook-handler.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/class-wc-centrobill-gateway.php',
+                WC_CENTROBILL_PLUGIN_PATH . '/includes/class-wc-centrobill-payment-methods.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-cc.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-local-payment.php',
                 WC_CENTROBILL_PLUGIN_PATH . '/includes/gateways/class-wc-centrobill-gateway-cc_token.php',
@@ -102,6 +101,8 @@ if (!class_exists('WC_Centrobill')) {
             $this->logger = new WC_Centrobill_Logger($settings);
 
             add_filter('woocommerce_payment_gateways', [$this, 'addGateways']);
+
+            WC_Centrobill_Payment_Methods::init();
 
             // Wire up the CartFlows one-click offer integration only when CartFlows Pro is present.
             if (defined('CARTFLOWS_PRO_FILE')) {
@@ -192,75 +193,6 @@ if (!class_exists('WC_Centrobill')) {
             return $slugs;
         }
 
-        /**
-         * @param string $data
-         */
-        public static function updatePaymentGateways($data)
-        {
-            if (wc_centrobill_is_payment_page_enabled()) {
-                return;
-            }
-
-            $user = wp_get_current_user();
-            parse_str($data, $result);
-
-            if ($user->exists() || (!empty($result['billing_email']) && is_email($result['billing_email']))) {
-                wc_centrobill()->logger->info(__METHOD__, [
-                    'is_logged_in' => $user->exists(),
-                    'is_email' => !empty($result['billing_email']),
-                ]);
-                $email = !empty($result['billing_email']) ? $result['billing_email'] : $user->user_email;
-                WC()->session->set(SESSION_KEY_EMAIL, sanitize_email($email));
-
-                add_filter('woocommerce_available_payment_gateways', [__CLASS__, 'getAvailablePaymentGateways']);
-            }
-        }
-
-        /**
-         * @param array $gateways
-         *
-         * @return array
-         */
-        public static function getAvailablePaymentGateways(array $gateways)
-        {
-            if (wc_centrobill_is_payment_page_enabled()) {
-                return $gateways;
-            }
-
-            $email = WC()->session->get(SESSION_KEY_EMAIL);
-            if (false === ($response = get_transient(self::getPMTransientKey($email)))) {
-                try {
-                    $response = wc_centrobill()->api->getPaymentMethods($email);
-                    set_transient(self::getPMTransientKey($email), $response, self::TRANSIENT_PM_TTL);
-                } catch (Exception $e) {
-                    $response = [];
-                    wc_centrobill()->logger->error($e->getMessage());
-                }
-            }
-
-            foreach ($response as $paymentMethod) {
-                $gateway = sprintf('WC_Centrobill_Gateway_%s', strtoupper($paymentMethod));
-                if (class_exists($gateway)) {
-                    $gateway = new $gateway();
-                }
-                if ($gateway instanceof WC_Centrobill_Gateway_Abstract && $gateway->is_accessible()) {
-                    $gateways[$gateway->id] = $gateway;
-                }
-            }
-
-            return $gateways;
-        }
-
-        /**
-         * @param string $email
-         *
-         * @return string
-         */
-        public static function getPMTransientKey($email)
-        {
-            return sprintf(SESSION_KEY_PM, md5($email));
-        }
-
         private function __clone() {}
         public function __wakeup() {}
     }
@@ -276,5 +208,3 @@ if (!class_exists('WC_Centrobill')) {
 function wc_centrobill() {
     return WC_Centrobill::getInstance();
 }
-
-add_action('woocommerce_checkout_update_order_review', ['WC_Centrobill', 'updatePaymentGateways']);

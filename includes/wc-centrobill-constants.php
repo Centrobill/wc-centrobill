@@ -11,15 +11,12 @@ const RESULT_OK = 'OK';
 const RESULT_NOK = 'NOK';
 
 const API_URL = 'https://api.centrobill.com';
-const EPAYMENT_URL = 'https://epayment.centrobill.com/epayment/lib/paypage_api/pay.php';
 
 const API_ENDPOINT_PAYMENT = 'payment';
 const API_ENDPOINT_TOKENIZE = 'tokenize';
 const API_ENDPOINT_PAYMENT_PAGE = 'paymentPage';
-
-const METHOD_GET_CREATE_USER = 'get_ustas_or_create';
-const METHOD_GET_PM = 'get';
-const METHOD_GET_PM_DETAILS = 'get-payment-details';
+const API_ENDPOINT_PAYMENT_METHODS = 'paymentMethods/available';
+const API_ENDPOINT_CONSUMER_RESOLVE = 'consumer/resolve';
 
 const PAYMENT_TYPE_TOKEN = 'token';
 const PAYMENT_TYPE_SEPA = 'sepa';
@@ -34,6 +31,10 @@ const PAYMENT_TYPE_MYBANK = 'mybank';
 const PAYMENT_TYPE_CRYPTO = 'crypto';
 const PAYMENT_TYPE_CONSUMER = 'consumer';
 const PAYMENT_TYPE_CC_TOKEN = 'cc_token';
+
+const SKU_TYPE_ONE_TIME = 'one-time';
+const SKU_TYPE_INITIAL = 'initial';
+const SKU_TYPE_FREE_TRIAL = 'free_trial';
 
 const MODE_SALE = 'sale';
 const MODE_AUTH = 'auth';
@@ -82,8 +83,8 @@ const SETTING_OPTION_CRYPTO_ALL_WITH_EXCLUDING = 'crypto_availability_option_all
 const SETTING_VALUE_YES = 'yes';
 const SETTING_VALUE_NO = 'no';
 
-const SESSION_KEY_PM = 'centrobill_checkout_pm_%s';
-const SESSION_KEY_EMAIL = 'centrobill_checkout_email';
+const TRANSIENT_KEY_PM = 'centrobill_pm_%s';
+const OPTION_PM_CACHE_VERSION = 'centrobill_pm_cache_version';
 
 const IPN_MESSAGE_UNPROCESSABLE_STATUS = 'Unprocessable status';
 const IPN_ERROR_EMPTY_ORDER_ID = 'Empty order_id';

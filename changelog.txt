@@ -1,4 +1,9 @@
 *** Changelog ***
+= 2.6.0 - 2026-11-11 =
+* Update - All requests now go through the Centrobill API; the legacy epayment endpoint is no longer used.
+* Update - Checkout payment methods are resolved by cart amount, currency, type and billing country, no longer by customer email.
+* Fix - CartFlows offers and subscription renewals reliably reuse the order's consumer, without waiting for the IPN.
+
 = 2.5.0 - 2026-08-31 =
 * Add - Refund support for card payments (full and partial).
 * Add - Refund support for CartFlows Pro one-click offer transactions.

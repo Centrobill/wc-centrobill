@@ -1,9 +1,5 @@
 jQuery(
     function($) {
-        $('input[name="billing_email"]').change(function() {
-            $('body').trigger('update_checkout');
-        });
-
         $('input.wc-credit-card-form-card-number').payment('formatCardNumber');
         $('input.wc-credit-card-form-card-expiry').payment('formatCardExpiry');
         $('input.wc-credit-card-form-card-cvc').payment('formatCardCVC');

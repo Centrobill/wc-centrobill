@@ -67,13 +67,16 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
 
         /**
-         * @return void
+         * Save the settings and drop cached payment-method lists.
+         *
+         * @return bool
          */
-        public static function init()
+        public function process_admin_options()
         {
-            if (!empty($_REQUEST['billing_email'])) {
-                add_filter('woocommerce_available_payment_gateways', ['WC_Centrobill', 'getAvailablePaymentGateways']);
-            }
+            $saved = parent::process_admin_options();
+            WC_Centrobill_Payment_Methods::flushCache();
+
+            return $saved;
         }
 
         /**
@@ -222,7 +225,6 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
                     $result = wc_centrobill()->api->getPaymentPage($orderId);
                 } else {
                     $result = $this->gateway_process_payment($orderId);
-                    $this->clear_cached_data($order);
                 }
 
                 return [
@@ -421,7 +423,7 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         protected function receive_order_redirect_url(WC_Order $order, $data)
         {
             $this->update_order_status($order, $data);
-            $this->store_transaction_id($order, $data);
+            $this->store_payment_data($order, $data);
 
             if ($redirectForm = wc_centrobill_extract_redirect_form($data)) {
                 $order->update_meta_data(META_DATA_CB_REDIRECT_FORM, $redirectForm);
@@ -460,36 +462,36 @@ if (!class_exists('WC_Centrobill_Gateway_Abstract')) {
         }
 
         /**
-         * Persist the transaction id from a synchronous payment response.
+         * Persist the consumer id (whenever present, e.g. also before a 3DS redirect) and,
+         * for a successful payment, the transaction id from a synchronous payment response.
          *
          * @param WC_Order $order
          * @param mixed $data
          */
-        private function store_transaction_id(WC_Order $order, $data)
+        private function store_payment_data(WC_Order $order, $data)
         {
-            if (!is_array($data) || empty($data['payment']['transactionId'])) {
+            if (!is_array($data)) {
                 return;
             }
 
-            if (!wc_centrobill_is_payment_successful($data)) {
-                return;
+            $changed = false;
+
+            if (wc_centrobill_is_payment_successful($data)) {
+                $transactionId = $data['payment']['transactionId'];
+                $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $transactionId);
+                $order->set_transaction_id($transactionId);
+                $changed = true;
             }
 
-            $transactionId = $data['payment']['transactionId'];
-            $order->update_meta_data(META_DATA_CB_TRANSACTION_ID, $transactionId);
-            $order->set_transaction_id($transactionId);
-            $order->save();
-        }
+            if (!empty($data['consumer']['id'])) {
+                $consumerId = (string)$data['consumer']['id'];
+                $order->update_meta_data(META_DATA_CB_USER, $consumerId);
+                $changed = true;
+            }
 
-        /**
-         * @param WC_Order $order
-         */
-        private function clear_cached_data(WC_Order $order)
-        {
-            wc_centrobill_remove_session_keys([SESSION_KEY_EMAIL]);
-            delete_transient(WC_Centrobill::getPMTransientKey($order->get_billing_email()));
+            if ($changed) {
+                $order->save();
+            }
         }
     }
 }
-
-WC_Centrobill_Gateway_Abstract::init();
