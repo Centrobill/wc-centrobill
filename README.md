@@ -15,7 +15,9 @@
 * WooCommerce >= 3.5
 
 Verify that you are running the latest version of **WordPress** and **WooCommerce**. \
-Plugin requires at least **WP 5.1** & **WooCommerce 3.5**, and has been tested to work with versions up to: **WP 7.0** & **WooCommerce 10.9**.
+Plugin requires at least **WP 5.1** & **WooCommerce 3.5**, and has been tested to work with versions up to: **WP 7.1** & **WooCommerce 11.3**.
+
+The CentroBill payment methods are available only on the **classic checkout** page (the `[woocommerce_checkout]` shortcode). The block-based Checkout is not supported yet. [How to switch to the classic checkout](https://woocommerce.com/document/woocommerce-store-editing/customizing-cart-and-checkout/).
 
 ### Installation
 
