@@ -8,6 +8,8 @@
  * Author URI:      https://centrobill.com/
  * License:         GPL v3 or later
  * License URI:     https://www.gnu.org/licenses/gpl-3.0.html
+ * WC requires at least: 3.5
+ * WC tested up to: 11.3
  */
 defined('ABSPATH') || exit;
 
@@ -51,7 +53,18 @@ if (!class_exists('WC_Centrobill')) {
 
         private function __construct()
         {
+            add_action('before_woocommerce_init', [$this, 'declareWooCommerceCompatibility']);
             add_action('plugins_loaded', [$this, 'init']);
+        }
+
+        public function declareWooCommerceCompatibility()
+        {
+            if (!class_exists('\\Automattic\\WooCommerce\\Utilities\\FeaturesUtil')) {
+                return;
+            }
+
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, false);
         }
 
         /**

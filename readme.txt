@@ -2,10 +2,10 @@
 Contributors: centrobill
 Tags: woocommerce, centrobill, payment gateway, online payment, credit card, sepa
 Requires at least: 5.1
-Tested up to: 7.0.2
+Tested up to: 7.1
 Requires PHP: 5.6
-WC requires at least: 3.5.0
-WC tested up to: 10.9.4
+WC requires at least: 3.5
+WC tested up to: 11.3
 Stable tag: 2.6.0
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -39,7 +39,8 @@ Please go to the site [centrobill.com](https://centrobill.com/home#contactus) to
 
 == Installation ==
 Verify that you are running the latest version of WordPress and WooCommerce.
-Plugin requires at least WordPress 5.1 & WooCommerce 3.5, and has been tested to work with versions up to: WP 6.1 & WooCommerce 7.0.1.
+Plugin requires at least WordPress 5.1 & WooCommerce 3.5, and has been tested to work with versions up to: WP 7.1 & WooCommerce 11.3.
+The CentroBill payment methods are available only on the classic checkout page (the `[woocommerce_checkout]` shortcode). The block-based Checkout is not supported yet. [How to switch to the classic checkout](https://woocommerce.com/document/woocommerce-store-editing/customizing-cart-and-checkout/).
 
 = Automatic installation =
 * Download plugin repository as a single zip file.
@@ -121,10 +122,13 @@ Just in case, WooCommerce detailed manual about the tax setup is available by fo
 8. Tax. Product data.
 
 == Changelog ==
-= 2.6.0 - 2026-11-11 =
+= 2.6.0 - 2026-11-16 =
 * Update - All requests now go through the Centrobill API and the legacy epayment endpoint is no longer used.
 * Update - Checkout payment methods are resolved by cart amount, currency, type and billing country, no longer by customer email.
 * Fix - CartFlows offers and subscription renewals reliably reuse the order's consumer, without waiting for the IPN.
+* Update - Declare compatibility with WooCommerce High-Performance Order Storage (HPOS).
+* Update - Declare the plugin as incompatible with the block-based Cart & Checkout; the classic checkout is required.
+* Update - Tested up to WordPress 7.1 and WooCommerce 11.3.
 
 = 2.5.0 - 2026-08-31 =
 * Add - Refund support for card payments (full and partial).
